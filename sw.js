@@ -1,4 +1,4 @@
-const CACHE='adc-figueiras-v1-3-production-1';
+const CACHE='adc-figueiras-v1-3-production-2';
 const OFFLINE_URL='./index.html';
 const ASSETS=[
   './index.html','./styles.css','./app.js','./manifest.webmanifest',
