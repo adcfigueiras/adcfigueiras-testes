@@ -86,3 +86,15 @@
 .historical-hero{display:flex;align-items:center;justify-content:space-between;gap:18px;background:linear-gradient(135deg,#f7fbf8,#edf7f1)}.historical-position{display:flex;flex-direction:column;align-items:flex-end}.historical-position strong{font-size:38px;line-height:1;color:#087747}.historical-position span{font-size:12px;color:#607068;margin-top:5px}
 .admin-decision-field.hidden,.admin-score-field.hidden{display:none}
 @media(max-width:700px){.historical-banner{margin:0 12px 12px;align-items:flex-start;flex-direction:column}.historical-hero{align-items:flex-start}.historical-position strong{font-size:30px}.historical-competitions{grid-template-columns:1fr}}
+
+/* Calendário: preservar sete dias por linha e permitir consultar toda a semana no telemóvel. */
+.calendar-scroll{max-width:100%;min-width:0;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;border-radius:15px;scrollbar-width:thin;scrollbar-color:#b8cfc1 transparent}
+.calendar-scroll-hint{display:none}
+@media(max-width:780px){
+ .calendar-scroll{border:1px solid var(--line)}
+ .calendar-scroll .calendar-grid{width:980px;min-width:980px;grid-template-columns:repeat(7,minmax(0,1fr));border:0;border-radius:0}
+ .calendar-scroll .calendar-day{min-height:100px;padding:7px;min-width:0}
+ .calendar-scroll .dow{padding:9px 5px;font-size:11px}
+ .calendar-scroll .cal-event{width:100%;max-width:100%;text-align:left;font-size:10px;line-height:1.35;padding:6px 5px;cursor:pointer}
+ .calendar-scroll-hint{display:block;margin:0 0 9px;font-size:11px;color:var(--muted);text-align:center}
+}
