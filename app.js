@@ -1644,8 +1644,8 @@ const navDefs=[
  ]}
 ];
 const access={
- public:['dashboard','games','calendar','seriesResults','standings','team','stats','player','seasons','notifications','account','privacy'],
- member:['dashboard','games','calendar','seriesResults','standings','team','stats','player','seasons','notifications','account','privacy'],
+ public:['dashboard','games','calendar','seriesResults','standings','team','stats','player','matchcenter','seasons','notifications','account','privacy'],
+ member:['dashboard','games','calendar','seriesResults','standings','team','stats','player','matchcenter','seasons','notifications','account','privacy'],
  player:['dashboard','games','calendar','seriesResults','standings','team','stats','player','squad','training','weights','matchcenter','seasons','notifications','account','privacy'],
  captain:['dashboard','games','calendar','seriesResults','standings','team','stats','player','squad','training','weights','matchcenter','seasons','notifications','account','privacy','fines'],
  staff:['dashboard','games','calendar','seriesResults','standings','team','stats','player','squad','training','weights','matchcenter','seasons','notifications','account','privacy','fines','fineRules'],
