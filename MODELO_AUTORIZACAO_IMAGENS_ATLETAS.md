@@ -2,7 +2,7 @@
 
 **MINUTA PARA REVISÃO JURÍDICA / DO CLUBE. Não é formulário de consentimento automático integrado na app.**
 
-**Responsável pelo tratamento (a confirmar quanto à organização efetiva):** Associação Desportiva e Cultural de Figueiras, NIPC 501621245, sede Rua ADC Figueiras, n.º 217, 4620-204 Figueiras, Lousada, email de privacidade [POR CONFIRMAR].
+**Responsável pelo tratamento (a confirmar quanto à organização efetiva):** Associação Desportiva e Cultural de Figueiras, NIPC 501621245, sede Rua ADC Figueiras, n.º 217, 4620-204 Figueiras, Lousada, email de contacto e privacidade adcf2015@gmail.com, telefone 916 299 909.
 **Titular dos dados / atleta:** [nome completo] — **Data:** [____].
 **Representante legal, se aplicável:** [nome, qualidade e assinatura].
 
@@ -36,7 +36,7 @@ O tratamento de pesagens e dados de lesão <strong>não</strong> pode ser legiti
 Se, após avaliação, se escolher consentimento explícito para dados de saúde, elaborar uma declaração autónoma, granular e específica, com forma de revogação equivalente e registo auditável. Evitar usar consentimento quando a relação entre atleta e clube prejudique a liberdade de escolha.
 
 ## Direitos e contactos
-O titular pode solicitar informação e exercer os direitos aplicáveis previstos no RGPD pelo contacto [____]. Quando consentimento for fundamento do tratamento, é possível retirá-lo a qualquer momento com efeitos futuros. Ver também a Política de Privacidade da ADC Figueiras.
+O titular pode solicitar informação e exercer os direitos aplicáveis previstos no RGPD pelo email adcf2015@gmail.com ou telefone 916 299 909. Quando consentimento for fundamento do tratamento, é possível retirá-lo a qualquer momento com efeitos futuros. Ver também a Política de Privacidade da ADC Figueiras.
 
 **Assinatura do titular:** ____________________  
 **Assinatura do representante legal (quando necessária):** ____________________  
