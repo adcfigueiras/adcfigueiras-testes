@@ -12,6 +12,11 @@ const $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const pad=n=>String(n).padStart(2,'0');
 const uid=p=>`${p}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,7)}`;
 const esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]));
+function sanitizePlainText(value,max=120){
+ return String(value??'').normalize('NFC').replace(/[\u0000-\u001f\u007f<>]/g,'').trim().slice(0,max);
+}
+const EMAIL_INPUT_PATTERN=/^[^\s@<>]{1,64}@[^\s@<>]{1,190}$/;
+const MIN_NEW_PASSWORD_LENGTH=12;
 const money=n=>new Intl.NumberFormat('pt-PT',{style:'currency',currency:'EUR'}).format(Number(n)||0);
 const nowKey=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
 const fmtDate=iso=>iso?new Intl.DateTimeFormat('pt-PT',{day:'2-digit',month:'2-digit',year:'numeric'}).format(new Date(`${iso}T12:00:00`)):'—';
@@ -141,7 +146,7 @@ async function refreshMyBackendProfile(){
 }
 async function updateMyProfileName(name){
  if(!backendSession?.user?.id)throw new Error('Inicia sessão para alterar o perfil.');
- const clean=String(name||'').trim();
+ const clean=sanitizePlainText(name,120);
  if(!clean)throw new Error('Indica o teu nome.');
  const {error}=await supabaseClient.rpc('update_my_profile',{p_display_name:clean});
  if(error)throw error;
@@ -149,14 +154,14 @@ async function updateMyProfileName(name){
 }
 async function requestMyMemberNumber(memberNumber){
  if(!backendSession?.user?.id)throw new Error('Inicia sessão para enviar um pedido de sócio.');
- const {error}=await supabaseClient.rpc('request_member_number',{p_member_number:String(memberNumber||'').trim()||null});
+ const {error}=await supabaseClient.rpc('request_member_number',{p_member_number:sanitizePlainText(memberNumber,30)||null});
  if(error)throw error;
  await refreshMyBackendProfile();
  if(backendRoles.includes('admin'))await loadBackendPeopleData();
 }
 async function changeMyPassword(password,password2){
  if(!backendSession?.user?.id)throw new Error('Inicia sessão para alterar a palavra-passe.');
- if(String(password||'').length<8)throw new Error('A palavra-passe deve ter pelo menos 8 caracteres.');
+ if(String(password||'').length<MIN_NEW_PASSWORD_LENGTH)throw new Error('A nova palavra-passe deve ter pelo menos 12 caracteres.');
  if(password!==password2)throw new Error('As palavras-passe não coincidem.');
  const {error}=await supabaseClient.auth.updateUser({password});
  if(error)throw error;
@@ -662,7 +667,7 @@ async function createInitialBackendRoster(){
 async function saveBackendPlayer(localPlayer,data,isNew=false){
  const season=backendActiveSeason();
  if(!season)throw new Error('Não existe uma época ativa no Supabase.');
- const name=String(data.name||'').trim();
+ const name=sanitizePlainText(data.name,120);
  if(!name)throw new Error('O nome do jogador é obrigatório.');
  const numberText=String(data.number||'').trim();
  const shirtNumber=numberText===''?null:Number(numberText);
@@ -679,7 +684,7 @@ async function saveBackendPlayer(localPlayer,data,isNew=false){
   season_id:season.id,
   player_id:playerId,
   shirt_number:shirtNumber,
-  position:data.position||'Jogador',
+  position:['GR','Fixo','Fixo / Ala','Ala','Ala / Pivot','Pivot','Jogador'].includes(data.position)?data.position:'Jogador',
   position_group:data.position==='GR'?'goalkeeper':'field',
   active:true
  };
@@ -1378,13 +1383,14 @@ function repeatedSignupResponse(data){
 }
 
 async function completePasswordRecovery(password,password2){
- if(String(password||'').length<8){setAuthMessage('A palavra-passe deve ter pelo menos 8 caracteres.','error');return}
+ if(String(password||'').length<MIN_NEW_PASSWORD_LENGTH){setAuthMessage('A nova palavra-passe deve ter pelo menos 12 caracteres.','error');return}
  if(password!==password2){setAuthMessage('As palavras-passe não coincidem.','error');return}
  const btn=$('#recoveryPasswordBtn');if(btn){btn.disabled=true;btn.textContent='A guardar…'}setAuthMessage('');
  try{
   const {error}=await supabaseClient.auth.updateUser({password});if(error)throw error;
   passwordRecoveryMode=false;cleanAuthUrl();
   await clearLocalSupabaseSession();
+  resetPublicRuntimeState();
   showAuthGate();showAuthMode('login',false);
   const pw=$('#loginPassword');if(pw)pw.value='';
   setAuthMessage('Palavra-passe atualizada. Já podes iniciar sessão com a nova palavra-passe.','ok');
@@ -1392,18 +1398,21 @@ async function completePasswordRecovery(password,password2){
  finally{if(btn){btn.disabled=false;btn.textContent='Guardar nova palavra-passe'}}
 }
 async function signUpV3(name,email,memberNumber,password,password2){
- if(!String(name||'').trim()){setAuthMessage('Indica o teu nome.','error');return}
- if(password.length<8){setAuthMessage('A palavra-passe deve ter pelo menos 8 caracteres.','error');return}
+ const cleanName=sanitizePlainText(name,120);
+ const cleanEmail=String(email||'').trim().toLowerCase();
+ const cleanMember=sanitizePlainText(memberNumber,30);
+ if(!cleanName){setAuthMessage('Indica o teu nome.','error');return}
+ if(cleanEmail.length>254||!EMAIL_INPUT_PATTERN.test(cleanEmail)){setAuthMessage('Indica um email válido.','error');return}
+ if(password.length<MIN_NEW_PASSWORD_LENGTH){setAuthMessage('A palavra-passe deve ter pelo menos 12 caracteres.','error');return}
  if(password!==password2){setAuthMessage('As palavras-passe não coincidem.','error');return}
  const termsCheck=$('#signupForm input[name="termsAccepted"]');
  if(!termsCheck?.checked){setAuthMessage('Para criar conta, lê e aceita os Termos e Condições.','error');return}
  const btn=$('#signupBtn');if(btn){btn.disabled=true;btn.textContent='A criar…'}setAuthMessage('');
  try{
-  const cleanMember=String(memberNumber||'').trim();
   const {data,error}=await supabaseClient.auth.signUp({
-   email,
+   email:cleanEmail,
    password,
-   options:{emailRedirectTo:authRedirectUrl('signup'),data:{display_name:String(name||'').trim(),member_number:cleanMember||null,terms_accepted:true,terms_version:TERMS_VERSION}}
+   options:{emailRedirectTo:authRedirectUrl('signup'),data:{display_name:cleanName,member_number:cleanMember||null,terms_accepted:true,terms_version:TERMS_VERSION}}
   });
   if(error)throw error;
   if(repeatedSignupResponse(data)){
@@ -1478,6 +1487,7 @@ async function signInV3(email,password){
  }catch(err){
   console.error(err);setAuthMessage(friendlyAuthError(err)||'Não foi possível iniciar sessão.','error');
   try{await supabaseClient.auth.signOut()}catch{}
+  resetPublicRuntimeState();
  }finally{setAuthBusy(false)}
 }
 async function signOutV3(){
@@ -2312,6 +2322,8 @@ function openPlayer(id=''){
  $('#playerForm').onsubmit=async e=>{
   e.preventDefault();
   const d=Object.fromEntries(new FormData(e.target));
+  d.name=sanitizePlainText(d.name,120);
+  if(!d.name){alert('Indica o nome do jogador.');return}
   const btn=$('#savePlayerBtn');if(btn){btn.disabled=true;btn.textContent='A guardar…'}
   try{
    if(backendConnected&&backendRosterLoaded&&backendRoster.rows.length){
