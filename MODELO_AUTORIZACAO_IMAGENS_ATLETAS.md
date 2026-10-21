@@ -2,7 +2,7 @@
 
 **MINUTA PARA REVISÃO JURÍDICA / DO CLUBE. Não é formulário de consentimento automático integrado na app.**
 
-**Responsável pelo tratamento (a confirmar quanto à organização efetiva):** Associação Desportiva e Cultural de Figueiras, NIPC 501621245, sede [POR CONFIRMAR], email de privacidade [POR CONFIRMAR].
+**Responsável pelo tratamento (a confirmar quanto à organização efetiva):** Associação Desportiva e Cultural de Figueiras, NIPC 501621245, sede Rua ADC Figueiras, n.º 217, 4620-204 Figueiras, Lousada, email de privacidade [POR CONFIRMAR].
 **Titular dos dados / atleta:** [nome completo] — **Data:** [____].
 **Representante legal, se aplicável:** [nome, qualidade e assinatura].
 
