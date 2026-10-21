@@ -495,7 +495,9 @@ function applyBackendReferenceMetadata(){
   const league=(backendReference.competitions||[]).find(c=>c.season_id===remote.id&&c.competition_type==='league'&&c.phase!=='Taça Complementar');
   if(league)local.competitionName=`AF Porto I Divisão Futsal · ${league.series_name||league.name}`;
  }
- state.seasons=locals.sort((a,b)=>String(b.label).localeCompare(String(a.label),'pt'));
+ // As épocas online são a referência; os exemplos locais não devem ocultar os jogos reais do ambiente.
+ state.seasons=locals.filter(s=>(backendReference.seasons||[]).some(remote=>remote.id===s.backendId)).sort((a,b)=>String(b.label).localeCompare(String(a.label),'pt'));
+ state.games=(state.games||[]).filter(g=>state.seasons.some(s=>s.id===(g.seasonId||state.settings.activeSeasonId)));
  if(!state.seasons.some(x=>x.id===state.settings.activeSeasonId)){
   const current=state.seasons.find(x=>x.backendId===activeBackendId)||state.seasons[0];
   if(current)state.settings.activeSeasonId=current.id;
