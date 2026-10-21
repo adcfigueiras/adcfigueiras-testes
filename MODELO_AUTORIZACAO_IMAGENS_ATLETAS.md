@@ -2,7 +2,7 @@
 
 **MINUTA PARA REVISÃO JURÍDICA / DO CLUBE. Não é formulário de consentimento automático integrado na app.**
 
-**Responsável pelo tratamento:** [Denominação legal completa do clube], NIPC [____], sede [____], email de privacidade [____].
+**Responsável pelo tratamento (a confirmar quanto à organização efetiva):** Associação Desportiva e Cultural de Figueiras, NIPC 501621245, sede [POR CONFIRMAR], email de privacidade [POR CONFIRMAR].
 **Titular dos dados / atleta:** [nome completo] — **Data:** [____].
 **Representante legal, se aplicável:** [nome, qualidade e assinatura].
 
