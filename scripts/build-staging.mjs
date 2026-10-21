@@ -28,7 +28,7 @@ for(const file of required)if(!existsSync(join(base,file)))fail('Ficheiro em fal
 if(dest===base||!dest.startsWith(base+'/'))fail('Pasta de saída insegura');
 rmSync(dest,{recursive:true,force:true});mkdirSync(dest,{recursive:true});
 for(const file of required)cpSync(join(base,file),join(dest,file));
-for(const folder of ['assets','data'])if(existsSync(join(base,folder)))
+for(const folder of ['assets']if(existsSync(join(base,folder)))
  cpSync(join(base,folder),join(dest,folder),{recursive:true});
 
 function edit(file,transform){
@@ -59,6 +59,33 @@ edit('app.js',src=>{
   "const V2_KEY='adc-figueiras-team-manager-v3-preprod';",'Cache local');
  src=one(src,'function pushSupported(){return !!(',
   'function pushSupported(){return !!(VAPID_PUBLIC_KEY&&','Push opcional');
+ // Não transportar para a app de testes os dados iniciais reais do plantel,
+ // adversários ou calendário que existem no código original.
+ const seedStart=src.indexOf('const seedPlayers=');
+ const seedEnd=src.indexOf('const blankRoster=',seedStart);
+ if(seedStart<0||seedEnd<=seedStart)fail('Bloco de dados iniciais não encontrado');
+ const syntheticSeeds=`const seedPlayers=[
+  {id:'p1',name:'Jogador Fictício Um',position:'Ala',number:7,status:'Ativo',birth:'',phone:'',notes:''},
+  {id:'p2',name:'Jogador Fictício Dois',position:'Fixo',number:10,status:'Ativo',birth:'',phone:'',notes:''},
+  {id:'p3',name:'Guarda-Redes Fictício',position:'GR',number:1,status:'Ativo',birth:'',phone:'',notes:''},
+  {id:'p4',name:'Jogador Fictício Quatro',position:'Pivot',number:11,status:'Ativo',birth:'',phone:'',notes:''}
+ ];
+ const seedTeams=[
+  {name:'ADC Figueiras',short:'FIG TESTE',logo:'assets/adc-figueiras-logo-normal.png',homeVenue:'Pavilhão de Testes',aliases:[]},
+  {name:'Adversário Fictício A',short:'TESTE A',logo:'',homeVenue:'Pavilhão Fictício A',aliases:[]},
+  {name:'Adversário Fictício B',short:'TESTE B',logo:'',homeVenue:'Pavilhão Fictício B',aliases:[]}
+ ];
+ const seedFixtures=[
+  {round:4,date:'2026-10-18',time:'20:00',home:'ADC Figueiras',away:'Adversário Fictício B',id:'fx_teste_01',seasonId:'s2627',competition:'Liga Fictícia de Testes',venue:'Pavilhão de Testes',homeScore:3,awayScore:2,fixture:true},
+  {round:5,date:'2026-11-01',time:'20:00',home:'ADC Figueiras',away:'Adversário Fictício A',id:'fx_teste_02',seasonId:'s2627',competition:'Liga Fictícia de Testes',venue:'Pavilhão de Testes',homeScore:'',awayScore:'',fixture:true},
+  {round:6,date:'2026-11-08',time:'20:00',home:'Adversário Fictício B',away:'ADC Figueiras',id:'fx_teste_03',seasonId:'s2627',competition:'Liga Fictícia de Testes',venue:'Pavilhão Fictício B',homeScore:'',awayScore:'',fixture:true}
+ ];
+ `;
+ src=src.slice(0,seedStart)+syntheticSeeds+src.slice(seedEnd);
+ src=src.replace(/users:\\[\\s*\\{id:'u_david',[\\s\\S]*?\\}\\s*\\],/, 'users:[],');
+ // Evitar que dados locais legados de outras instalações sejam migrados no site de testes.
+ src=one(src,"const V1_KEY='adc-figueiras-team-manager-v1';",
+  "const V1_KEY='adc-figueiras-team-manager-v1-preprod';",'Cache v1 isolada');
  if(src.includes(productionHost))fail('A app pré-prod ainda menciona o backend de produção');
  return src;
 });
@@ -66,11 +93,20 @@ edit('index.html',src=>{
  src=one(src,prodCspHost,api.origin,'CSP Supabase');
  src=one(src,prodCspWs,'wss://'+api.hostname,'CSP WS');
  src=one(src,'<body>','<body><div class="preprod-ribbon" role="status">AMBIENTE DE TESTES — utilizar apenas dados fictícios</div>','Banner');
+ src=one(src,'<title>ADC Figueiras</title>','<title>ADC Figueiras — TESTES</title>','Título de testes');
+ src=one(src,'content="Figueiras"','content="Figueiras Testes"','Nome da instalação iOS');
  return src;
 });
 edit('styles.css',src=>src+'\n.preprod-ribbon{background:#ffdf89;color:#3b2500;padding:8px 16px;text-align:center;font-weight:800;position:sticky;top:0;z-index:10000;font-size:13px}\n');
 edit('sw.js',src=>one(src,"const CACHE='adc-figueiras-v1-3-production-2';",
  "const CACHE='adc-figueiras-preprod-v1-4-0';",'Cache service worker'));
+edit('manifest.webmanifest',src=>{
+ const manifest=JSON.parse(src);
+ manifest.name='ADC Figueiras — TESTES';
+ manifest.short_name='Figueiras TESTES';
+ manifest.description='Ambiente de demonstração com dados fictícios, separado da app oficial.';
+ return JSON.stringify(manifest,null,2)+'\\n';
+});
 
 const outputApp=readFileSync(join(dest,'app.js'),'utf8');
 const outputHtml=readFileSync(join(dest,'index.html'),'utf8');
