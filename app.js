@@ -224,21 +224,6 @@ async function activatePushOnDevice(){
  if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC_KEY)});
  const row=await savePushSubscription(sub);backendPushDevice={supported:true,permission:'granted',subscribed:true,endpoint:sub.endpoint,row};return row;
 }
-// Desvincula as notificações do dispositivo antes de terminar a sessão.
-async function detachPushOnLogout(){
- if(!backendSession?.user?.id||!('serviceWorker' in navigator))return;
- try{
-  const reg=await navigator.serviceWorker.getRegistration();
-  const subscription=await reg?.pushManager?.getSubscription();
-  if(!subscription)return;
-  try{
-   const {error}=await supabaseClient.from('push_subscriptions').delete().eq('endpoint',subscription.endpoint);
-   if(error)console.warn('Subscrição push remota ainda não confirmada como removida.');
-  }finally{
-   await subscription.unsubscribe();
-  }
- }catch(err){console.warn('Cancelamento de push neste dispositivo pendente:',err?.message||'')}
-}
 async function deactivatePushOnDevice(){
  if(!pushSupported())return;
  const reg=await navigator.serviceWorker.ready;const sub=await reg.pushManager.getSubscription();
@@ -1464,7 +1449,6 @@ async function loadPublicBackend(){
 }
 async function continueAsPublic(){
  setAuthMessage('A abrir a área pública…');
- if(backendSession?.user?.id)await Promise.race([detachPushOnLogout(),new Promise(resolve=>setTimeout(resolve,3000))]);
  try{
   // Garante que o primeiro pedido público usa a chave anónima e não um JWT antigo
   // que possa ter ficado guardado no browser de uma sessão anterior.
@@ -1507,8 +1491,8 @@ async function signInV3(email,password){
  }finally{setAuthBusy(false)}
 }
 async function signOutV3(){
- try{await Promise.race([detachPushOnLogout(),new Promise(resolve=>setTimeout(resolve,3000))])}
- catch(err){console.warn('Cancelamento do push pendente no logout:',err?.message||'')}
+ // A saída da conta não revoga o push do dispositivo.
+ // O utilizador pode desativá-lo expressamente nas definições de notificações.
  try{await supabaseClient?.auth.signOut()}catch(e){console.warn(e)}
  guestMode=false;backendSession=null;backendProfile=null;backendRoles=[];backendPlayerAccount=null;backendPeople={profiles:[],roles:[],links:[],invitations:[]};backendPeopleLoaded=false;backendPrivacyAcknowledgement=null;backendPrivacyLoaded=false;backendNotifications={rows:[],recipients:[],preferences:null};backendNotificationsLoaded=false;backendNotificationSchedule={...NOTIFICATION_SCHEDULE_DEFAULTS};backendNotificationScheduleLoaded=false;backendPushDevice={supported:false,permission:'default',subscribed:false,endpoint:'',row:null};state.notifications=[];backendConnected=false;mode='public';
  resetPublicRuntimeState();
