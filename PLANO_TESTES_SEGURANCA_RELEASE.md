@@ -7,16 +7,19 @@
 - [ ] Na aplicação **atualmente publicada**, entrar como Admin e exportar **snapshot de release** e **backup JSON**. Guardar os ficheiros num local privado com acesso restrito (não os colocar no repositório, nem enviar a serviços públicos).
 - [ ] Confirmar que os ficheiros foram descarregados e contêm o histórico esperado (jogos, convocatórias, treinos, pesagens, multas e épocas).
 - [ ] Copiar manualmente o **modelo do plano alimentar** atualmente introduzido nas Definições (se existir), pois a nova versão deixa de o guardar no navegador.
-- [ ] Preparar um projeto Supabase de teste com dados fictícios e contas de cada categoria. Não usar dados reais de atletas em ambientes de teste sem necessidade e salvaguardas.
+- [ ] Preparar um projeto Supabase **separado** de teste com dados fictícios e contas de cada categoria, após confirmar organização e eventuais custos. Não usar dados reais de atletas em ambientes de teste sem necessidade e salvaguardas.
 - [ ] Preparar um site de teste separado para a branch. **O GitHub Pages de produção continua a apontar para `main`**, portanto uma branch do GitHub não é, por si só, uma pré-visualização funcional.
 
 ## 1. Migrações previstas e ordem de validação
 
-As migrações estão apenas preparadas no repositório:
+**Testes estáticos do GitHub Actions:** a execução de 21/10/2026 passou, incluindo isolamento do pacote de pré-produção (<https://github.com/adcfigueiras/adcfigueiras.github.io/actions/runs/39620976338>). Este sucesso não substitui testes de API/RLS em projeto Supabase de testes.
+
+As **quatro migrações** estão apenas preparadas no repositório:
 
 1. `SUPABASE_MIGRATION_NUTRITION_SETTINGS.sql`: criar tabela privada de configurações nutricionais. Testar RLS e atualização por staff/admin; repor o template antigo, se existir.
 2. `SUPABASE_MIGRATION_TERMS_ACCEPTANCES.sql`: registar versão dos Termos e instante do registo. Testar criação de conta, email de confirmação, utilizadores por convite e que o cliente não pode alterar o próprio registo.
 3. `SUPABASE_MIGRATION_CALLUP_PUBLIC.sql`: disponibilizar a convocatória a todos depois da primeira publicação e preparar a notificação geral. Confirmar que não há reenvio ao editar.
+4. `SUPABASE_MIGRATION_SECURITY_RATE_LIMIT.sql`: aplicar limitação de pedidos por utilizador no servidor e testar exceções, concorrência e limites.
 
 **Importante:** as minutas SQL têm de ser revistas e testadas no ambiente de desenvolvimento antes de se proceder a qualquer alteração de produção. Confirmar compatibilidade com as políticas existentes e efeitos de eventuais dados históricos.
 
