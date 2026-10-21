@@ -17,7 +17,7 @@
 <body>
   <section class="auth-gate" id="authGate">
     <div class="auth-card">
-      <div class="auth-logo"><img src="assets/adc-figueiras-emblema.png" alt="ADC Figueiras" /></div>
+      <div class="auth-logo"><img src="assets/adc-figueiras-emblema.png" alt="Emblema da ADC Figueiras" /></div>
       <div class="auth-copy">
         <span class="auth-kicker">ADC FIGUEIRAS</span>
         <h1 id="authTitle">Entrar</h1>
@@ -37,6 +37,8 @@
         <label>N.º de sócio <span class="muted">(opcional)</span><input name="memberNumber" type="text" autocomplete="off" placeholder="Se fores sócio" /><small>O número fica pendente até ser validado por um Admin.</small></label>
         <label>Palavra-passe<input name="password" type="password" autocomplete="new-password" minlength="8" required placeholder="Mínimo 8 caracteres" /></label>
         <label>Confirmar palavra-passe<input name="password2" type="password" autocomplete="new-password" required placeholder="Repete a palavra-passe" /></label>
+        <label class="legal-consent"><input type="checkbox" name="termsAccepted" required /><span>Li e aceito os <a href="termos.html" target="_blank" rel="noopener noreferrer">Termos e Condições</a> da aplicação.</span></label>
+        <p class="legal-info">Antes de criar conta, consulta a <a href="privacidade.html" target="_blank" rel="noopener noreferrer">Política de Privacidade</a> para saberes como são tratados os teus dados pessoais. Esta informação não equivale a consentimento para o tratamento de dados de saúde ou publicação de fotografias.</p>
         <button class="btn auth-submit" id="signupBtn" type="submit">Criar conta</button>
         <button class="btn secondary auth-alt" id="backToLoginBtn" type="button">Voltar a Entrar</button>
       </form>
@@ -59,14 +61,14 @@
         <button class="btn secondary auth-alt" id="resendBackToLoginBtn" type="button">Voltar a Entrar</button>
       </form>
       <div class="auth-message" id="authMessage" aria-live="polite"></div>
-      <div class="auth-foot">ADC Figueiras · V1.3 · <button class="auth-link inline" id="authPrivacyBtn" type="button">Privacidade</button></div>
+      <div class="auth-foot">ADC Figueiras · V1.3 · <button class="auth-link inline" id="authPrivacyBtn" type="button">Privacidade na app</button><div class="legal-links"><a href="termos.html" target="_blank" rel="noopener noreferrer">Termos</a><a href="privacidade.html" target="_blank" rel="noopener noreferrer">Política de Privacidade</a><a href="cookies.html" target="_blank" rel="noopener noreferrer">Cookies</a></div></div>
     </div>
   </section>
 
   <div class="app-shell auth-hidden" id="appShell">
     <aside class="sidebar" id="sidebar">
       <div class="brand">
-        <div class="brand-mark"><img src="assets/adc-figueiras-emblema.png" alt="Emblema ADC Figueiras" /></div>
+        <div class="brand-mark"><img src="assets/adc-figueiras-emblema.png" alt="Emblema da ADC Figueiras" /></div>
         <div><strong>ADC Figueiras</strong><span>Clube · V1.3</span></div>
       </div>
 
@@ -82,7 +84,7 @@
           <div class="avatar" id="profileAvatar">DT</div>
           <div><strong id="profileName">David</strong><small id="profileRoles">Jogador · Equipa técnica · Admin</small></div>
         </div>
-        <small id="sidebarBackendNote">V3 · autenticação Supabase</small>
+        <small id="sidebarBackendNote">V3 · autenticação Supabase</small><nav class="sidebar-legal-links" aria-label="Informação legal"><a href="termos.html" target="_blank" rel="noopener noreferrer">Termos</a><a href="privacidade.html" target="_blank" rel="noopener noreferrer">Privacidade</a><a href="cookies.html" target="_blank" rel="noopener noreferrer">Cookies</a></nav>
       </div>
     </aside>
 
@@ -100,7 +102,7 @@
             <option value="public">Vista Pública</option>
           </select>
           <span class="connection-state" id="connectionState">Ligação pendente</span>
-          <button class="icon-btn" id="notificationBell" title="Notificações">🔔<span class="count" id="notificationCount">0</span></button>
+          <button class="icon-btn" id="notificationBell" title="Notificações" aria-label="Notificações">🔔<span class="count" id="notificationCount">0</span></button>
           <button class="btn secondary sm" id="logoutBtn" type="button">Sair</button>
         </div>
       </header>
@@ -133,7 +135,7 @@
 
   <div class="modal-backdrop hidden" id="modalBackdrop">
     <div class="modal" id="modal" role="dialog" aria-modal="true">
-      <div class="modal-head"><div><h2 id="modalTitle"></h2><p id="modalSubtitle"></p></div><button class="icon-btn ghost" id="closeModal">✕</button></div>
+      <div class="modal-head"><div><h2 id="modalTitle"></h2><p id="modalSubtitle"></p></div><button class="icon-btn ghost" id="closeModal" aria-label="Fechar janela">✕</button></div>
       <div class="modal-body" id="modalBody"></div>
     </div>
   </div>
