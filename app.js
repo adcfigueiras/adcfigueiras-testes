@@ -1849,11 +1849,27 @@ function canonicalTeamName(name){
 }
 function normalizedTeamName(name){return canonicalTeamName(name)}
 function teamByName(name){const canonical=canonicalTeamName(name);const local=(state?.teams||seedTeams).find(t=>t.name===canonical)||seedTeams.find(t=>t.name===canonical);if(local)return local;const remote=backendTeamByName(canonical);return remote?{name:backendTeamName(remote),short:remote.short_name||remote.name,logo:remote.crest_url||'',homeVenue:'',aliases:[remote.name,remote.short_name].filter(Boolean)}:null}
+function safeImageSource(value){
+ const raw=String(value||'').trim();
+ if(!raw||/[\u0000-\u001f\u007f]/.test(raw))return '';
+ try{
+  const url=new URL(raw,location.href);
+  // HTTPS externo ou ficheiros do próprio site. Nunca data:, blob: ou javascript:.
+  if(url.protocol==='https:'||(url.origin===location.origin&&url.protocol==='http:'))return url.href;
+ }catch{}
+ return '';
+}
 function teamLogoHtml(name,cls=''){
  const t=teamByName(name);const n=canonicalTeamName(name);const abbr=n.split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase();
- if(!t?.logo)return `<span class="team-logo ${cls}"><span class="team-logo-fallback">${esc(abbr)}</span></span>`;
- return `<span class="team-logo ${cls}"><img src="${esc(t.logo)}" alt="${esc(n)}" referrerpolicy="no-referrer" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'"><span class="team-logo-fallback">${esc(abbr)}</span></span>`;
+ const src=safeImageSource(t?.logo);
+ if(!src)return `<span class="team-logo ${esc(cls)}"><span class="team-logo-fallback">${esc(abbr)}</span></span>`;
+ return `<span class="team-logo ${esc(cls)}"><img src="${esc(src)}" alt="Emblema de ${esc(n)}" referrerpolicy="no-referrer" loading="lazy"><span class="team-logo-fallback">${esc(abbr)}</span></span>`;
 }
+// Usar listener, em vez de atributos onerror inline, para permitir CSP sem unsafe-inline.
+document.addEventListener('error',event=>{
+ const img=event.target;
+ if(img?.matches?.('.team-logo img'))img.closest('.team-logo')?.classList.add('logo-failed');
+},true);
 function teamCell(name){const n=canonicalTeamName(name);return `<button class="team-cell team-link" type="button" data-team-link="${esc(n)}">${teamLogoHtml(n)}<strong>${esc(n)}</strong></button>`}
 function isFigueirasTeam(name){return canonicalTeamName(name)==='ADC Figueiras'}
 function isExtraSeriesGame(r){return !!r&&(r.fixture===false||String(r.id||'').startsWith('cr_'))}
