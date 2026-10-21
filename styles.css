@@ -110,3 +110,8 @@
 .sidebar-legal-links{display:flex;flex-wrap:wrap;gap:9px;font-size:10px}
 .sidebar-legal-links a{color:rgba(255,255,255,.8);text-decoration:underline;text-underline-offset:2px}
 .sidebar-legal-links a:focus-visible,.legal-links a:focus-visible,.legal-consent a:focus-visible{outline:2px solid #f7ba44;outline-offset:2px}
+
+
+/* Emblemas indisponíveis: fallback sem handlers JavaScript inline */
+.team-logo.logo-failed img{display:none!important}
+.team-logo.logo-failed .team-logo-fallback{display:grid!important}
