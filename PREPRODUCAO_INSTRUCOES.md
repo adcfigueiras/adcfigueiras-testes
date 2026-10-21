@@ -1,6 +1,6 @@
 # APP ADC Figueiras — ambiente de pré-produção
 
-**Estado:** preparação técnica no ramo `feature/public-member-match-center`.  
+**Estado:** aplicação de testes publicada na `main` de `adcfigueiras/adcfigueiras-testes`; validação funcional em curso.  
 **Produção:** https://adcfigueiras.github.io/ — projeto Supabase `kfihltycbnambszmefqa` (**NÃO ALTERAR NA FASE DE TESTES**).
 
 ## Estado confirmado em 21/10/2026
@@ -13,8 +13,46 @@
 - **Dados de demonstração permanentes e fictícios:** quatro jogadores, uma época e três jogos. O ficheiro `tests/sql/staging-demo-data.sql` reproduz os dados sem copiar contas ou emails.
 - **Testes automatizados aprovados:** [GitHub Actions de segurança e migrações](https://github.com/adcfigueiras/adcfigueiras.github.io/actions/runs/39626474586).
 - **Pacote de app de pré-produção produzido:** [GitHub Actions — pré-produção](https://github.com/adcfigueiras/adcfigueiras.github.io/actions/runs/39626474672), artefacto `adc-figueiras-preproducao` (expira em 28/10/2026). Esta versão utiliza a URL e a chave **pública** do projeto de testes; nunca uma chave privada ou a base real. O push fica desativado.
-- **Ainda não existe endereço web de pré-visualização**; o artefacto ZIP é um site estático. Falta alojá-lo num endereço de testes distinto da produção, sem alterar o GitHub Pages em `main`.
+- **Site de testes publicado e verificado:** https://adcfigueiras.github.io/adcfigueiras-testes/. O repositório de produção não foi alterado.
 - **Ainda pendentes:** contas de teste autenticadas por função, ensaios completos em Android/iPhone, configuração e testes separados das Edge Functions, revisão final das páginas legais, backups reais exportados pelo Admin e verificações finais antes da publicação.
+
+
+## Atualização de validação — 21/10/2026
+
+### Confirmado no navegador e pelo utilizador
+- GitHub Pages de testes ativo; Site URL e Redirect URLs configurados pelo utilizador.
+- Registo, confirmação de email e entrada da conta de testes concluídos.
+- Recuperação de palavra-passe concluída, com entrada usando a nova palavra-passe.
+- Convocatória publicada visível ao visitante; convocatória não publicada oculta.
+- Pesagens fictícias guardadas, preservadas após atualização e presentes na cronologia única da ficha do jogador. Secção de pesagens oculta ao visitante.
+- Calendário no telemóvel: deslocação horizontal, abertura de detalhes e legibilidade confirmadas pelo utilizador. Sistema operativo do dispositivo não identificado; não equivale a validação independente em Android e iPhone.
+- Corrigida a seleção da época local de exemplo que ocultava os dados online: commits `519bf0a7` e `305277ab`. Verificada no navegador a convocatória de três jogadores após publicação.
+
+### Verificação direta de permissões na base de dados
+Executada exclusivamente em `exqqcpxvegqkjwenriik`, dentro de transação revertida. Nenhuma alteração de funções ficou guardada; administrador confirmado após rollback.
+
+| Acesso simulado | Pesagens de jogo visíveis | Configuração do plano alimentar | Exportação de administrador |
+| --- | --- | --- | --- |
+| Autenticado sem funções | 0 | 0 | Bloqueada |
+| Sócio | 0 | 0 | Bloqueada |
+| Jogador | 2 | 0 | Bloqueada |
+| Capitão | 2 | 0 | Bloqueada |
+| Staff | 2 | 1 | Bloqueada |
+| Administrador | 2 | 1 | Não chamada neste teste |
+
+Os números representam linhas existentes visíveis, não permissões de escrita. O caso sem funções foi simulado com um UUID sem funções, sem criar uma conta Auth. Treinos, presenças, pesagens de treino e multas não continham dados; resultados vazios nessas tabelas não comprovam isolamento com dados. Permanecem necessários testes de escrita e testes completos com contas separadas.
+
+### Avisos do analisador Supabase
+- Todas as 29 tabelas públicas têm RLS ativo.
+- Onze funções públicas `SECURITY DEFINER` são executáveis por utilizadores autenticados. A leitura do código confirmou verificações de função/identidade; o bloqueio da exportação administrativa foi testado nos cinco perfis não administradores acima. Isto não representa um teste dinâmico completo de todas as funções. [Explicação do aviso](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable).
+- `private.user_action_rate_limits` tem RLS sem políticas: tabela interna, sem acesso direto por desenho. [Explicação](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy).
+- Proteção contra palavras-passe comprometidas desativada no projeto de testes; configuração não alterada. [Documentação](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
+
+### Próximos passos
+- Retomar o registo da segunda conta após repor a quota de email. Os registos de Auth confirmaram `over_email_send_rate_limit`; o serviço integrado limita o projeto a dois emails por hora. Não foi desativada a confirmação de email nem alterada a quota.
+- Testar conta registada e sócio no navegador, depois restantes funções, incluindo tentativas de escrita não autorizadas.
+- Completar ensaios Android/iPhone e validação de notificações em ambiente controlado. O push permanece desativado no site de testes.
+- Produção só pode ser alterada após autorização expressa.
 
 ## Testes automáticos complementares em PostgreSQL descartável
 
