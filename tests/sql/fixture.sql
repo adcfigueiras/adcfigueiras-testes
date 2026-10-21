@@ -110,6 +110,21 @@ CREATE POLICY "Staff access all match players" ON public.match_players
 GRANT SELECT ON public.matches,public.match_players TO anon,authenticated;
 GRANT SELECT ON public.profiles TO authenticated;
 
+-- A produção concede a cada conta SELECT das suas notificações.
+-- Reproduzir a política de leitura, sem abrir a tabela publicamente.
+ALTER TABLE public.notification_recipients ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users read own notification recipients"
+ ON public.notification_recipients FOR SELECT TO authenticated
+ USING (user_id = (SELECT auth.uid()));
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users read received notifications"
+ ON public.notifications FOR SELECT TO authenticated
+ USING (EXISTS (
+   SELECT 1 FROM public.notification_recipients nr
+   WHERE nr.notification_id=notifications.id AND nr.user_id=(SELECT auth.uid())
+ ));
+GRANT SELECT ON public.notification_recipients,public.notifications TO authenticated;
+
 -- Notificação e RPC são proprietárias do servidor, não do cliente.
 -- O esqueleto acima expõe apenas as colunas usadas pela função real
 -- create_notification incorporada na migração de rate limit.
