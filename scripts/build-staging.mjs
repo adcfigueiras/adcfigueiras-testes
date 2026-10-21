@@ -43,10 +43,13 @@ function one(src,from,to,name){
  if(hits!==1)fail(name+': esperado 1 marcador; encontrados '+hits);
  return src.replace(from,to);
 }
-const prodCspHost='https://'+productionHost;
-const prodCspWs='wss://'+productionHost;
+const sourceApp=readFileSync(join(base,'app.js'),'utf8');
+const sourceUrl=sourceApp.match(/const SUPABASE_URL='([^']+)';/)?.[1];
+if(!sourceUrl)fail('URL de origem não encontrada');
+const prodCspHost=sourceUrl;
+const prodCspWs=sourceUrl.replace('https:','wss:');
 edit('app.js',src=>{
- src=one(src,"const SUPABASE_URL='https://"+productionHost+"';",
+ src=one(src,"const SUPABASE_URL='"+sourceUrl+"';",
   'const SUPABASE_URL='+JSON.stringify(api.origin)+';','URL Supabase');
  src=src.replace(/const SUPABASE_PUBLISHABLE_KEY='[^']+';/,
    'const SUPABASE_PUBLISHABLE_KEY='+JSON.stringify(apiKey)+';');
@@ -54,10 +57,9 @@ edit('app.js',src=>{
    fail('Publishable key não substituída');
  src=src.replace(/const VAPID_PUBLIC_KEY='[^']*';/,
    'const VAPID_PUBLIC_KEY='+JSON.stringify(vapidKey)+';');
- src=one(src,"const APP_VERSION='1.3';","const APP_VERSION='1.4.0-preprod';",'Versão');
- src=one(src,"const V2_KEY='adc-figueiras-team-manager-v3-dev';",
-  "const V2_KEY='adc-figueiras-team-manager-v3-preprod';",'Cache local');
- src=one(src,'function pushSupported(){return !!(',
+ src=src.replace(/const APP_VERSION='[^']+';/,"const APP_VERSION='1.4.0-preprod';");
+ src=src.replace(/const V2_KEY='[^']+';/,"const V2_KEY='adc-figueiras-team-manager-v3-preprod';");
+ if(!src.includes('function pushSupported(){return !!(VAPID_PUBLIC_KEY&&'))src=one(src,'function pushSupported(){return !!(',
   'function pushSupported(){return !!(VAPID_PUBLIC_KEY&&','Push opcional');
  // Não transportar para a app de testes os dados iniciais reais do plantel,
  // adversários ou calendário que existem no código original.
@@ -84,28 +86,31 @@ edit('app.js',src=>{
  src=src.slice(0,seedStart)+syntheticSeeds+src.slice(seedEnd);
  src=src.replace(/users:\[\s*\{id:'u_david',[\s\S]*?\}\s*\],/, 'users:[],');
  // Evitar que dados locais legados de outras instalações sejam migrados no site de testes.
- src=one(src,"const V1_KEY='adc-figueiras-team-manager-v3-legacy-unused';",
-  "const V1_KEY='adc-figueiras-team-manager-v3-legacy-unused-preprod';",'Cache v1 isolada');
+ for(const key of ['V1_KEY','MODE_KEY','AUTO_BACKUP_KEY','PUSH_ONBOARDING_KEY_PREFIX','FIRST_ACCESS_KEY_PREFIX','PENDING_CONFIRM_EMAIL_KEY']){
+  src=src.replace(new RegExp("const "+key+"='[^']*';"),"const "+key+"='adc-figueiras-preprod-"+key.toLowerCase()+":';");
+ }
+ src=src.replace(/(['"])(?:testes-)?(mcGame|playerView|teamView)\1/g,"'preprod-$2'");
+ src=src.replace(/const backendTeamCanonicalBySlug=\{[\s\S]*?\};/,"const backendTeamCanonicalBySlug={'adc-figueiras-demo':'ADC Figueiras','adversario-ficticio-a':'Adversário Fictício A','adversario-ficticio-b':'Adversário Fictício B'};");
  if(src.includes(productionHost))fail('A app pré-prod ainda menciona o backend de produção');
  return src;
 });
 edit('index.html',src=>{
  src=one(src,prodCspHost,api.origin,'CSP Supabase');
  src=one(src,prodCspWs,'wss://'+api.hostname,'CSP WS');
+ src=src.replace(/\s*<div class="preprod-ribbon"[^>]*>[\s\S]*?<\/div>/,'');
  src=one(src,'<body>','<body><div class="preprod-ribbon" role="status">AMBIENTE DE TESTES — utilizar apenas dados fictícios</div>','Banner');
- src=one(src,'<title>ADC Figueiras</title>','<title>ADC Figueiras — TESTES</title>','Título de testes');
- src=one(src,'content="Figueiras"','content="Figueiras Testes"','Nome da instalação iOS');
+ src=src.replace(/<title>[^<]*<\/title>/,'<title>ADC Figueiras — TESTES</title>');
+ src=src.replace(/(<meta name="apple-mobile-web-app-title" content=")[^"]+/, '$1Figueiras Testes');
  return src;
 });
 edit('styles.css',src=>src+'\n.preprod-ribbon{background:#ffdf89;color:#3b2500;padding:8px 16px;text-align:center;font-weight:800;position:sticky;top:0;z-index:10000;font-size:13px}\n');
-edit('sw.js',src=>one(src,"const CACHE='adc-figueiras-v1-3-production-2';",
- "const CACHE='adc-figueiras-preprod-v1-4-0';",'Cache service worker'));
+edit('sw.js',src=>src.replace(/const CACHE='[^']+';/,"const CACHE='adc-figueiras-preprod-v1-4-0';").replace(/keys\.filter\(k=>[^\n]+?\)\.map/,"keys.filter(k=>k.startsWith('adc-figueiras-preprod-')&&k!==CACHE).map"));
 edit('manifest.webmanifest',src=>{
  const manifest=JSON.parse(src);
  manifest.name='ADC Figueiras — TESTES';
  manifest.short_name='Figueiras TESTES';
  manifest.description='Ambiente de demonstração com dados fictícios, separado da app oficial.';
- return JSON.stringify(manifest,null,2)+'\\n';
+ return JSON.stringify(manifest,null,2)+'\n';
 });
 
 const outputApp=readFileSync(join(dest,'app.js'),'utf8');

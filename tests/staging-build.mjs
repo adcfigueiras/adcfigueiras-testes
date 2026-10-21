@@ -44,6 +44,10 @@ try{
  assert.ok(html.includes('AMBIENTE DE TESTES'));
  assert.ok(css.includes('.preprod-ribbon'));
  assert.ok(sw.includes('adc-figueiras-preprod-v1-4-0'));
+ assert.ok(sw.includes("k.startsWith('adc-figueiras-preprod-')"));
+ assert.ok(!app.includes('adc-figueiras-v3-preview-mode'));
+ assert.ok(!app.includes('adc-figueiras-testes-v3-cache'));
+ assert.equal(JSON.parse(readFileSync(join(dir,'manifest.webmanifest'),'utf8')).short_name,'Figueiras TESTES');
 
  for(const file of ['termos.html','privacidade.html','cookies.html','legal.css','assets/icon-192.png','manifest.webmanifest'])
   assert.ok(existsSync(join(dir,file)),'Falta ficheiro estático: '+file);
