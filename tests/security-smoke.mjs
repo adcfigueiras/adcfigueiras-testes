@@ -17,7 +17,7 @@ assert.doesNotMatch(app, /\bsb_secret_[a-zA-Z0-9_]+|SUPABASE_SERVICE_ROLE_KEY|VA
 assert.match(app, /SUPABASE_PUBLISHABLE_KEY='sb_publishable_/);
 assert.match(html, /@supabase\/supabase-js@2\.118\.0\/dist\/umd\/supabase\.js/);
 assert.match(html, /http-equiv="Content-Security-Policy"/);
-assert.doesNotMatch(html, /script-src[^"]*unsafe-inline/);
+assert.doesNotMatch(html, /script-src[^;"]*unsafe-inline/);
 assert.match(html, /name="referrer" content="no-referrer"/);
 assert.match(app, /function renderPeople\(\)\{\s*if\(!backendSession\?\.user\?\.id\|\|!backendRoles\.includes\('admin'\)\)/);
 assert.match(app, /function renderSettings\(\)\{\s*if\(!backendSession\?\.user\?\.id\|\|!backendRoles\.includes\('admin'\)\)/);
