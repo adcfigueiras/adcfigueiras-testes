@@ -1,0 +1,30 @@
+name: Verificação de segurança pré-lançamento
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-security:
+    name: Segurança estática
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verificar sintaxe JavaScript
+        run: |
+          node --check app.js
+          node --check sw.js
+          node --check tests/security-smoke.mjs
+      - name: Executar verificações de segurança
+        run: node tests/security-smoke.mjs
