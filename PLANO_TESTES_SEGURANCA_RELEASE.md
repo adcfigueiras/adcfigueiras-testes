@@ -62,7 +62,8 @@ As migrações estão apenas preparadas no repositório:
 ## 5. Legal, acessibilidade, terceiros e divulgação
 
 - [ ] Validar por pessoa responsável da associação e assessoria jurídica as versões finais de Termos, Privacidade e Cookies; remover avisos de minuta / `noindex` somente após validação.
-- [ ] Confirmar se existem atletas menores e os requisitos de informação/autorizações dos responsáveis legais.
+- [x] Confirmado pelo responsável pelo projeto em 21/10/2026: **não existem atletas menores de 18 anos no plantel atual**.
+- [ ] Definir procedimento para verificar a idade de novos atletas e avaliar, antes da inclusão de menores, as autorizações e proteções aplicáveis; confirmar separadamente se o serviço permite contas de utilizadores menores.
 - [ ] Documentar fundamento jurídico e condição adicional quando aplicável para tratar dados de saúde e permitir a consulta interna partilhada das pesagens.
 - [ ] Confirmar direitos de utilização de fotografias de jogadores, emblemas de equipas e patrocinadores; substituir imagens sem autorização/licença suficiente.
 - [ ] Inspecionar, em janela privada, a rede e os dados do navegador (cookies/armazenamento) antes e depois do login; confirmar scripts externos e que não há tracking não essencial sem consentimento.
