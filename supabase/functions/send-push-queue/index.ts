@@ -1,6 +1,16 @@
 import { createClient } from "npm:@supabase/supabase-js@2.118.0";
 import webpush from "npm:web-push@3.6.7";
 
+// Respostas da fila são privadas; não permitir cache ou leitura cross-origin.
+function secureJson(body: unknown, init: ResponseInit = {}): Response {
+ const headers=new Headers(init.headers);
+ headers.set("Cache-Control","no-store");
+ headers.set("X-Content-Type-Options","nosniff");
+ headers.set("Referrer-Policy","no-referrer");
+ headers.set("Cross-Origin-Resource-Policy","same-site");
+ return Response.json(body,{...init,headers});
+}
+
 function getAdminKey() {
   const raw = Deno.env.get("SUPABASE_SECRET_KEYS");
 
@@ -52,7 +62,7 @@ const preferenceField = {
 Deno.serve(async (req) => {
 
   if (req.method !== "POST") {
-    return Response.json(
+    return secureJson(
       { error: "Method not allowed" },
       { status: 405 },
     );
@@ -72,7 +82,7 @@ Deno.serve(async (req) => {
       !expectedSecret ||
       suppliedSecret !== expectedSecret
     ) {
-      return Response.json(
+      return secureJson(
         { error: "Unauthorized" },
         { status: 401 },
       );
@@ -157,7 +167,7 @@ Deno.serve(async (req) => {
 
 
     if (!notifications?.length) {
-      return Response.json({
+      return secureJson({
         processed: 0,
         sent_users: 0,
         sent_devices: 0,
@@ -204,7 +214,7 @@ Deno.serve(async (req) => {
 
 
     if (!recipients?.length) {
-      return Response.json({
+      return secureJson({
         processed: 0,
         sent_users: 0,
         sent_devices: 0,
@@ -631,7 +641,7 @@ Deno.serve(async (req) => {
     }
 
 
-    return Response.json({
+    return secureJson({
       processed,
       sent_users: sentUsers,
       sent_devices: sentDevices,
@@ -645,17 +655,11 @@ Deno.serve(async (req) => {
 
   } catch (error) {
 
-    console.error(error);
+    console.error("Push queue request failed:",error instanceof Error?error.name:"Unknown");
 
-    return Response.json(
-      {
-        error:
-          error?.message ||
-          "Unknown error",
-      },
-      {
-        status: 500,
-      },
+    return secureJson(
+      { error: "Não foi possível processar a fila de notificações." },
+      { status: 500 },
     );
   }
 });
