@@ -25,7 +25,6 @@ permissions:
 
 jobs:
   package:
-    if: ${{ vars.STAGING_SUPABASE_URL != '' && vars.STAGING_SUPABASE_PUBLISHABLE_KEY != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -34,9 +33,11 @@ jobs:
           node-version: '22'
       - name: Compilar site com Supabase APENAS de testes
         env:
-          STAGING_SUPABASE_URL: ${{ vars.STAGING_SUPABASE_URL }}
-          STAGING_SUPABASE_PUBLISHABLE_KEY: ${{ vars.STAGING_SUPABASE_PUBLISHABLE_KEY }}
-          STAGING_VAPID_PUBLIC_KEY: ${{ vars.STAGING_VAPID_PUBLIC_KEY }}
+          # Valores PÚBLICOS do ambiente de testes, destinados ao navegador.
+          # Chaves secretas/service_role nunca são incluídas neste pacote.
+          STAGING_SUPABASE_URL: https://exqqcpxvegqkjwenriik.supabase.co
+          STAGING_SUPABASE_PUBLISHABLE_KEY: sb_publishable_r7awQR_4lQ6xIaFXX1gsng_vZIaQ40e
+          STAGING_VAPID_PUBLIC_KEY: ''
         run: node scripts/build-staging.mjs
       - name: Confirmar ausência de referências à produção
         run: |
