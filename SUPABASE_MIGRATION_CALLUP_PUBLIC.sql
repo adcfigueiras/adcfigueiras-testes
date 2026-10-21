@@ -7,8 +7,9 @@ begin;
 alter table public.matches
   add column if not exists callup_published_at timestamptz;
 
--- A ficha pública pode consultar os jogadores convocados de um jogo agendado
--- somente depois da primeira gravação com convocados (publicação explícita no backend).
+-- A ficha pública pode consultar apenas os jogadores efetivamente convocados
+-- num jogo agendado depois da publicação da convocatória no backend.
+-- Os registos de não convocados permanecem reservados à equipa interna.
 -- A política anterior para jogos concluídos mantém-se.
 drop policy if exists "Public can read published match players" on public.match_players;
 create policy "Public can read published match players"
@@ -19,6 +20,7 @@ using (
     select 1 from public.matches m
     where m.id = match_players.match_id
       and m.callup_published_at is not null
+      and match_players.called_up is true
   )
 );
 
