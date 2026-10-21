@@ -24,8 +24,8 @@ using (
 
 -- Uma única publicação por jogo: lock transacional e timestamp permanente.
 -- A função existente create_notification respeita callup_enabled.
--- Jogadores convocados continuam a receber a notificação INDIVIDUAL já existente;
--- nesta notificação geral excluímos as contas dos convocados, para evitar duplicados.
+-- A notificação INDIVIDUAL existente para jogadores convocados mantém-se separada.
+-- A mensagem geral é enviada a todos os elegíveis (incluindo jogadores).
 create or replace function public.publish_match_callup(p_match_id uuid)
 returns table(published boolean, notification_id uuid, recipient_count integer)
 language plpgsql
@@ -88,23 +88,11 @@ begin
     p_scheduled_for => null
   ) n;
 
-  -- Não duplicar para quem está convocado e já tem o aviso individual.
-  delete from public.notification_recipients nr
-  where nr.notification_id = v_note_id
-    and exists (
-      select 1
-      from public.player_accounts pa
-      join public.match_players mp on mp.player_id = pa.player_id
-      where pa.user_id = nr.user_id
-        and mp.match_id = p_match_id
-        and mp.called_up = true
-    );
-
-  select count(*)::integer into v_count
-  from public.notification_recipients nr
-  where nr.notification_id = v_note_id;
-
-  return query select true, v_note_id, v_count;
+  -- A mensagem geral chega a todos os utilizadores elegíveis que tenham
+  -- a preferência Convocatórias ativa. A notificação individual já existente
+  -- mantém-se independente e continua disponível para os convocados.
+  -- A chave dedupe_key impede nova mensagem geral ao reeditar o jogo.
+  return query select true, v_note_id, coalesce(v_count, 0);
 end;
 $function$;
 
