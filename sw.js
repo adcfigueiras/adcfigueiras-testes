@@ -1,4 +1,4 @@
-const CACHE='adc-figueiras-v1-3-production-2';
+const CACHE='adc-figueiras-testes-v1-4-0';
 const OFFLINE_URL='./index.html';
 const ASSETS=[
   './index.html','./styles.css','./app.js','./manifest.webmanifest',
@@ -12,7 +12,7 @@ self.addEventListener('install',event=>{
 self.addEventListener('activate',event=>{
  event.waitUntil((async()=>{
   const keys=await caches.keys();
-  await Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)));
+  await Promise.all(keys.filter(k=>k.startsWith('adc-figueiras-testes-')&&k!==CACHE).map(k=>caches.delete(k)));
   await self.clients.claim();
  })());
 });
