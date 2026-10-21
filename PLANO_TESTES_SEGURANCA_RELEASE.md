@@ -65,7 +65,8 @@ As migrações estão apenas preparadas no repositório:
 - [x] Confirmado pelo responsável pelo projeto em 21/10/2026: **não existem atletas menores de 18 anos no plantel atual**.
 - [ ] Definir procedimento para verificar a idade de novos atletas e avaliar, antes da inclusão de menores, as autorizações e proteções aplicáveis; confirmar separadamente se o serviço permite contas de utilizadores menores.
 - [ ] Documentar fundamento jurídico e condição adicional quando aplicável para tratar dados de saúde e permitir a consulta interna partilhada das pesagens.
-- [ ] Confirmar direitos de utilização de fotografias de jogadores, emblemas de equipas e patrocinadores; substituir imagens sem autorização/licença suficiente.
+- [x] Confirmada a origem das fotografias do plantel: tiradas por uma pessoa ligada ao clube (informação dada em 21/10/2026).
+- [ ] Confirmar com o fotógrafo os direitos/licença para utilizar e publicar as fotos; informar os jogadores sobre a divulgação e documentar o fundamento jurídico. Confirmar separadamente emblemas de adversários e patrocinadores.
 - [ ] Inspecionar, em janela privada, a rede e os dados do navegador (cookies/armazenamento) antes e depois do login; confirmar scripts externos e que não há tracking não essencial sem consentimento.
 - [ ] Rever acessibilidade: alt text, foco de teclado, contraste, navegação, labels e leitura da política no telemóvel.
 - [ ] Rever avisos do Supabase Security Advisor, incluindo funções privilegiadas e proteção contra palavras-passe comprometidas, e definir medidas aprovadas.
