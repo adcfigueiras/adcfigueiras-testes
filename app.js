@@ -6,6 +6,7 @@ const MODE_KEY='adc-figueiras-v3-preview-mode';
 const AUTO_BACKUP_KEY='adc-figueiras-team-manager-v3-autobackup';
 const APP_VERSION='1.3';
 const PRIVACY_POLICY_VERSION='2026-09-29-v1';
+const TERMS_VERSION='2026-10-21-v1';
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const pad=n=>String(n).padStart(2,'0');
@@ -1369,7 +1370,7 @@ async function signUpV3(name,email,memberNumber,password,password2){
   const {data,error}=await supabaseClient.auth.signUp({
    email,
    password,
-   options:{emailRedirectTo:authRedirectUrl('signup'),data:{display_name:String(name||'').trim(),member_number:cleanMember||null}}
+   options:{emailRedirectTo:authRedirectUrl('signup'),data:{display_name:String(name||'').trim(),member_number:cleanMember||null,terms_accepted:true,terms_version:TERMS_VERSION}}
   });
   if(error)throw error;
   if(repeatedSignupResponse(data)){
