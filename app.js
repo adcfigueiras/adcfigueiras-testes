@@ -224,6 +224,21 @@ async function activatePushOnDevice(){
  if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC_KEY)});
  const row=await savePushSubscription(sub);backendPushDevice={supported:true,permission:'granted',subscribed:true,endpoint:sub.endpoint,row};return row;
 }
+// Desvincula as notificações do dispositivo antes de terminar a sessão.
+async function detachPushOnLogout(){
+ if(!backendSession?.user?.id||!('serviceWorker' in navigator))return;
+ try{
+  const reg=await navigator.serviceWorker.getRegistration();
+  const subscription=await reg?.pushManager?.getSubscription();
+  if(!subscription)return;
+  try{
+   const {error}=await supabaseClient.from('push_subscriptions').delete().eq('endpoint',subscription.endpoint);
+   if(error)console.warn('Subscrição push remota ainda não confirmada como removida.');
+  }finally{
+   await subscription.unsubscribe();
+  }
+ }catch(err){console.warn('Cancelamento de push neste dispositivo pendente:',err?.message||'')}
+}
 async function deactivatePushOnDevice(){
  if(!pushSupported())return;
  const reg=await navigator.serviceWorker.ready;const sub=await reg.pushManager.getSubscription();
@@ -1152,11 +1167,11 @@ async function migrateLocalFinesToBackend(){
  let rules=0,fines=0,skipped=0;
  for(const r of [...(state.fineRules||[])]){
   if(r.backendId||r.code==='training_late')continue;
-  try{await saveBackendFineRule(r);rules++}catch(err){console.warn('Regra não migrada',r,err);skipped++}
+  try{await saveBackendFineRule(r);rules++}catch(err){console.warn('Regra não migrada:',err?.message||'erro');skipped++}
  }
  for(const f of [...(state.fines||[])]){
   if(f.backendId||f.auto||f.sourceType==='training_late')continue;
-  try{await saveBackendFine(f);fines++}catch(err){console.warn('Multa não migrada',f,err);skipped++}
+  try{await saveBackendFine(f);fines++}catch(err){console.warn('Multa não migrada:',err?.message||'erro');skipped++}
  }
  await loadBackendFinesData();return {rules,fines,skipped};
 }
@@ -1449,6 +1464,7 @@ async function loadPublicBackend(){
 }
 async function continueAsPublic(){
  setAuthMessage('A abrir a área pública…');
+ if(backendSession?.user?.id)await Promise.race([detachPushOnLogout(),new Promise(resolve=>setTimeout(resolve,3000))]);
  try{
   // Garante que o primeiro pedido público usa a chave anónima e não um JWT antigo
   // que possa ter ficado guardado no browser de uma sessão anterior.
@@ -1491,6 +1507,8 @@ async function signInV3(email,password){
  }finally{setAuthBusy(false)}
 }
 async function signOutV3(){
+ try{await Promise.race([detachPushOnLogout(),new Promise(resolve=>setTimeout(resolve,3000))])}
+ catch(err){console.warn('Cancelamento do push pendente no logout:',err?.message||'')}
  try{await supabaseClient?.auth.signOut()}catch(e){console.warn(e)}
  guestMode=false;backendSession=null;backendProfile=null;backendRoles=[];backendPlayerAccount=null;backendPeople={profiles:[],roles:[],links:[],invitations:[]};backendPeopleLoaded=false;backendPrivacyAcknowledgement=null;backendPrivacyLoaded=false;backendNotifications={rows:[],recipients:[],preferences:null};backendNotificationsLoaded=false;backendNotificationSchedule={...NOTIFICATION_SCHEDULE_DEFAULTS};backendNotificationScheduleLoaded=false;backendPushDevice={supported:false,permission:'default',subscribed:false,endpoint:'',row:null};state.notifications=[];backendConnected=false;mode='public';
  resetPublicRuntimeState();
@@ -2475,6 +2493,7 @@ function renderSeasons(){
 function rolePills(roles=[]){return roles.length?roles.map(r=>pill(roleLabel(r),r==='admin'?'purple':r==='staff'?'blue':r==='captain'?'amber':r==='player'?'green':'gray')).join(''):pill('Registado','gray')}
 function memberAccessHtml(u){if(u.roles?.includes('member')||u.memberStatus==='verified')return `${esc(u.memberNumber||'—')} ${pill('Validado','green')}`;if(u.memberStatus==='pending')return `${esc(u.memberNumber||'—')} ${pill('Por validar','amber')}`;return '—'}
 function renderPeople(){
+ if(!backendSession?.user?.id||!backendRoles.includes('admin')){$('#view-people').innerHTML=empty('Sem acesso','Apenas administradores podem consultar e gerir utilizadores.');return}
  if(!backendPeopleLoaded){$('#view-people').innerHTML=`<div class="section-head"><div><h2>Pessoas e acessos</h2><p>Contas e permissões reais no Supabase.</p></div></div>${empty('A carregar utilizadores…')}`;return}
  const people=backendPeopleRows(),invites=backendPeople.invitations||[];
  $('#view-people').innerHTML=`<div class="section-head"><div><h2>Pessoas e acessos</h2><p>Contas, pedidos de sócio e permissões reais no Supabase.</p></div><div class="inline-actions"><button class="btn secondary" id="refreshPeople">Atualizar</button><button class="btn" id="addUser">＋ Pré-atribuir acesso</button></div></div><div class="info-strip">Qualquer pessoa pode criar uma conta. Sem funções atribuídas, fica como utilizador registado com acesso público. Usa a pré-atribuição para Jogador, Capitão, Equipa técnica ou Admin. Um número de sócio indicado no registo fica por validar até um Admin atribuir a função Sócio.</div><div style="height:12px"></div><div class="card"><div class="card-head"><div><h3>Contas ativas</h3><p>${people.length} conta(s) criada(s)</p></div>${pill('Supabase','green')}</div>${people.length?`<div class="table-wrap"><table><thead><tr><th>Pessoa</th><th>Funções</th><th>Jogador associado</th><th>Sócio</th><th>Estado</th><th></th></tr></thead><tbody>${people.map(u=>`<tr><td><strong>${esc(u.name)}</strong><div class="meta">${esc(u.email||'Sem email')}</div></td><td><div class="tags">${rolePills(u.roles)}</div></td><td>${esc(backendPlayerName(u.backendPlayerId))}</td><td>${memberAccessHtml(u)}</td><td>${u.active?pill('Ativa','green'):pill('Desativada','red')}</td><td><button class="btn secondary sm edit-user" data-id="${u.id}">Editar</button></td></tr>`).join('')}</tbody></table></div>`:empty('Ainda não existem contas.')}</div><div style="height:15px"></div><div class="card"><div class="card-head"><div><h3>Acessos pré-atribuídos</h3><p>Emails que receberão automaticamente funções quando criarem conta.</p></div>${pill(`${invites.length} pendente${invites.length===1?'':'s'}`,invites.length?'amber':'gray')}</div>${invites.length?`<div class="table-wrap"><table><thead><tr><th>Pessoa</th><th>Funções</th><th>Jogador</th><th>Sócio nº</th><th></th></tr></thead><tbody>${invites.map(i=>`<tr><td><strong>${esc(i.display_name||'—')}</strong><div class="meta">${esc(i.email)}</div></td><td><div class="tags">${rolePills(i.roles||[])}</div></td><td>${esc(backendPlayerName(i.player_id))}</td><td>${esc(i.member_number||'—')}</td><td><div class="inline-actions"><button class="btn secondary sm edit-invite" data-id="${i.id}">Editar</button><button class="btn danger sm cancel-invite" data-id="${i.id}">Cancelar</button></div></td></tr>`).join('')}</tbody></table></div>`:empty('Sem acessos pendentes','Usa “Pré-atribuir acesso” quando alguém precisar de funções internas.')}</div>`;
@@ -2495,6 +2514,7 @@ function openInvitation(id=''){
 }
 
 function renderSettings(){
+ if(!backendSession?.user?.id||!backendRoles.includes('admin')){$('#view-settings').innerHTML=empty('Sem acesso','Apenas administradores podem consultar as definições.');return}
  const diag={players:state.players.length,games:state.games.length,trainings:state.trainings.length,results:state.competitionResults.length,seasons:state.seasons.length,matchPlayers:(backendMatchCenter.matchPlayers||[]).length,matchEvents:(backendMatchCenter.events||[]).length,matchWeighIns:(backendMatchCenter.weighIns||[]).length,onlineTrainings:(backendTraining.trainings||[]).length,onlineAttendance:(backendTraining.attendance||[]).length,onlineWeighIns:(backendTraining.weighIns||[]).length,onlineFineRules:(backendFines.rules||[]).length,onlineFines:(backendFines.fines||[]).length};
  const autoSnap=autoBackupSnapshot();
  const bSeason=backendActiveSeason(),bClub=backendClubTeam();
