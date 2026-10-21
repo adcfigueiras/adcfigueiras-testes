@@ -82,10 +82,10 @@ edit('app.js',src=>{
  ];
  `;
  src=src.slice(0,seedStart)+syntheticSeeds+src.slice(seedEnd);
- src=src.replace(/users:\\[\\s*\\{id:'u_david',[\\s\\S]*?\\}\\s*\\],/, 'users:[],');
+ src=src.replace(/users:\[\s*\{id:'u_david',[\s\S]*?\}\s*\],/, 'users:[],');
  // Evitar que dados locais legados de outras instalações sejam migrados no site de testes.
- src=one(src,"const V1_KEY='adc-figueiras-team-manager-v1';",
-  "const V1_KEY='adc-figueiras-team-manager-v1-preprod';",'Cache v1 isolada');
+ src=one(src,"const V1_KEY='adc-figueiras-team-manager-v3-legacy-unused';",
+  "const V1_KEY='adc-figueiras-team-manager-v3-legacy-unused-preprod';",'Cache v1 isolada');
  if(src.includes(productionHost))fail('A app pré-prod ainda menciona o backend de produção');
  return src;
 });
