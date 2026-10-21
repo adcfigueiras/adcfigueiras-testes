@@ -81,7 +81,7 @@ begin
   from public.create_notification(
     p_type => 'callup',
     p_title => 'CONVOCATÓRIA DISPONÍVEL',
-    p_body => 'A convocatória para o próximo jogo já está disponível! Consulta o Match Center da ADC Figueiras.',
+    p_body => 'A convocatória para o próximo jogo já está disponível! Consulta o Match Center.',
     p_audience => 'all_registered',
     p_match_id => p_match_id,
     p_dedupe_key => 'callup_public:' || p_match_id::text,
