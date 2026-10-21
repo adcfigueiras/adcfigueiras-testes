@@ -28,7 +28,7 @@ for(const file of required)if(!existsSync(join(base,file)))fail('Ficheiro em fal
 if(dest===base||!dest.startsWith(base+'/'))fail('Pasta de saída insegura');
 rmSync(dest,{recursive:true,force:true});mkdirSync(dest,{recursive:true});
 for(const file of required)cpSync(join(base,file),join(dest,file));
-for(const folder of ['assets']if(existsSync(join(base,folder)))
+for(const folder of ['assets'])if(existsSync(join(base,folder)))
  cpSync(join(base,folder),join(dest,folder),{recursive:true});
 
 function edit(file,transform){
