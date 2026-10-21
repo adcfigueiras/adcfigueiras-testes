@@ -1612,12 +1612,19 @@ function publicCacheSnapshot(source){
 }
 function persistPublicCache(){try{localStorage.setItem(V2_KEY,JSON.stringify(publicCacheSnapshot(state)))}catch(e){console.warn('Cache pública não guardada',e)}}
 function sanitizeLegacyBrowserCache(){
+ // Não deixar uma cópia antiga com pesagens ou dados de conta em armazenamento
+ // persistente, mesmo quando o backup local não é JSON válido.
  try{
   const old=localStorage.getItem(AUTO_BACKUP_KEY);
-  if(old){const v=JSON.parse(old);localStorage.setItem(AUTO_BACKUP_KEY,JSON.stringify({savedAt:v?.savedAt||'',data:publicCacheSnapshot(v?.data||{})}))}
-  persistPublicCache();
+  if(old){
+   try{
+    const v=JSON.parse(old);
+    localStorage.setItem(AUTO_BACKUP_KEY,JSON.stringify({savedAt:v?.savedAt||'',data:publicCacheSnapshot(v?.data||{})}));
+   }catch(e){localStorage.removeItem(AUTO_BACKUP_KEY);console.warn('Backup antigo inválido removido da cache.',e)}
+  }
   localStorage.removeItem(V1_KEY);
- }catch(e){console.warn('Cache legada não migrada',e)}
+ }catch(e){console.warn('Não foi possível limpar as chaves legadas.',e)}
+ persistPublicCache();
 }
 function resetPublicRuntimeState(){
  state=normalizeState(publicCacheSnapshot(state));
