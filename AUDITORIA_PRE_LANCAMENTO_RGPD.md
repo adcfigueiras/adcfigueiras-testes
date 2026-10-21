@@ -34,6 +34,14 @@ Data da revisão inicial: 21/10/2026. Âmbito: código estático no branch `feat
 - **Notificações de nutrição**: foi identificada a inclusão de pesos no texto completo de algumas notificações; a Edge Function preparada no GitHub substituirá **só no push** o conteúdo por uma mensagem genérica. O corpo individual continuará na caixa privada de notificações do destinatário. **A Edge Function em produção não foi alterada.**
 - **Configuração interna**: template nutricional e preferências de peso passam a ser obtidos através de tabela privada após a sua migração. Não há alteração de produção até testes de autorização e preservação de backups.
 
+### Atualização de pré-produção (21/10/2026)
+
+- O ambiente **não foi criado ainda**. Foi identificada a organização Supabase «ADC Figueiras»; aguarda-se confirmação do responsável para escolher essa organização e verificar eventuais custos de um projeto separado.
+- Criados `scripts/build-staging.mjs`, `tests/staging-build.mjs`, `.github/workflows/preproduction-package.yml` e `PREPRODUCAO_INSTRUCOES.md`. A preparação impede que uma distribuição de testes use a URL do Supabase real e separa a cache da PWA.
+- **CI verde:** a execução de GitHub Actions `39620976338` aprovou a sintaxe, os testes estáticos de segurança e a construção isolada de pré-produção. Ainda faltam contas fictícias, teste funcional no navegador e teste real de RLS/migrações.
+- O workflow de pacote de pré-produção **não é um site publicado**: só gera artefactos quando forem configuradas variáveis públicas de um novo projeto de testes.
+- Permanecem quatro migrações SQL para validar num Supabase de testes antes de produção.
+
 ## PRIORIDADE 1 — Melhorias técnicas
 
 - **Supabase security advisors** (21/10/2026): aviso de **9 funções SECURITY DEFINER com EXECUTE para utilizadores autenticados** e **proteção de palavras-passe comprometidas desativada**. As funções podem ser intencionais, mas cada uma exige revisão do código, `auth.uid()`, verificações de função, search_path, GRANT e abuso. Não remover indiscriminadamente funções necessárias. Ver documentação: https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable e https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection .
