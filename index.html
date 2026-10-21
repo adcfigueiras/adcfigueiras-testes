@@ -26,7 +26,7 @@
         <p id="authDescription">Entra com a tua conta ADC Figueiras.</p>
       </div>
       <form id="loginForm" class="auth-form">
-        <label>Email<input id="loginEmail" name="email" type="email" autocomplete="email" required placeholder="teu@email.pt" /></label>
+        <label>Email<input id="loginEmail" name="email" type="email" autocomplete="email" maxlength="254" required placeholder="teu@email.pt" /></label>
         <label>Palavra-passe<input id="loginPassword" name="password" type="password" autocomplete="current-password" required placeholder="••••••••" /></label>
         <button class="auth-link" id="forgotPasswordBtn" type="button">Esqueci-me da palavra-passe</button>
         <button class="btn auth-submit" id="loginBtn" type="submit">Entrar</button>
@@ -34,10 +34,10 @@
         <button class="btn secondary auth-alt" id="continuePublicBtn" type="button">Continuar sem conta</button>
       </form>
       <form id="signupForm" class="auth-form hidden">
-        <label>Nome<input name="name" type="text" autocomplete="name" required placeholder="O teu nome" /></label>
-        <label>Email<input name="email" type="email" autocomplete="email" required placeholder="teu@email.pt" /></label>
-        <label>N.º de sócio <span class="muted">(opcional)</span><input name="memberNumber" type="text" autocomplete="off" placeholder="Se fores sócio" /><small>O número fica pendente até ser validado por um Admin.</small></label>
-        <label>Palavra-passe<input name="password" type="password" autocomplete="new-password" minlength="8" required placeholder="Mínimo 8 caracteres" /></label>
+        <label>Nome<input name="name" type="text" autocomplete="name" maxlength="120" required placeholder="O teu nome" /></label>
+        <label>Email<input name="email" type="email" autocomplete="email" maxlength="254" required placeholder="teu@email.pt" /></label>
+        <label>N.º de sócio <span class="muted">(opcional)</span><input name="memberNumber" type="text" autocomplete="off" maxlength="30" placeholder="Se fores sócio" /><small>O número fica pendente até ser validado por um Admin.</small></label>
+        <label>Palavra-passe<input name="password" type="password" autocomplete="new-password" minlength="12" required placeholder="Mínimo 12 caracteres" /></label>
         <label>Confirmar palavra-passe<input name="password2" type="password" autocomplete="new-password" required placeholder="Repete a palavra-passe" /></label>
         <label class="legal-consent"><input type="checkbox" name="termsAccepted" required /><span>Li e aceito os <a href="termos.html" target="_blank" rel="noopener noreferrer">Termos e Condições</a> da aplicação.</span></label>
         <p class="legal-info">Antes de criar conta, consulta a <a href="privacidade.html" target="_blank" rel="noopener noreferrer">Política de Privacidade</a> para saberes como são tratados os teus dados pessoais. Esta informação não equivale a consentimento para o tratamento de dados de saúde ou publicação de fotografias.</p>
@@ -46,19 +46,19 @@
       </form>
       <form id="forgotPasswordForm" class="auth-form hidden">
         <div class="info-strip">Indica o email da tua conta. Se existir uma conta associada, receberás um link para definir uma nova palavra-passe.</div>
-        <label>Email<input id="forgotPasswordEmail" name="email" type="email" autocomplete="email" required placeholder="teu@email.pt" /></label>
+        <label>Email<input id="forgotPasswordEmail" name="email" type="email" autocomplete="email" maxlength="254" required placeholder="teu@email.pt" /></label>
         <button class="btn auth-submit" id="forgotPasswordSubmitBtn" type="submit">Enviar link de recuperação</button>
         <button class="btn secondary auth-alt" id="forgotBackToLoginBtn" type="button">Voltar a Entrar</button>
       </form>
       <form id="recoveryPasswordForm" class="auth-form hidden">
         <div class="info-strip">O link foi validado. Define agora uma nova palavra-passe para a tua conta.</div>
-        <label>Nova palavra-passe<input name="password" type="password" autocomplete="new-password" minlength="8" required placeholder="Mínimo 8 caracteres" /></label>
+        <label>Nova palavra-passe<input name="password" type="password" autocomplete="new-password" minlength="12" required placeholder="Mínimo 12 caracteres" /></label>
         <label>Confirmar nova palavra-passe<input name="password2" type="password" autocomplete="new-password" required placeholder="Repete a palavra-passe" /></label>
         <button class="btn auth-submit" id="recoveryPasswordBtn" type="submit">Guardar nova palavra-passe</button>
       </form>
       <form id="resendConfirmationForm" class="auth-form hidden">
         <div class="info-strip">O link de confirmação já não é válido. Indica o email usado no registo para receberes um novo link.</div>
-        <label>Email<input id="resendConfirmationEmail" name="email" type="email" autocomplete="email" required placeholder="teu@email.pt" /></label>
+        <label>Email<input id="resendConfirmationEmail" name="email" type="email" autocomplete="email" maxlength="254" required placeholder="teu@email.pt" /></label>
         <button class="btn auth-submit" id="resendConfirmationBtn" type="submit">Reenviar email de confirmação</button>
         <button class="btn secondary auth-alt" id="resendBackToLoginBtn" type="button">Voltar a Entrar</button>
       </form>
