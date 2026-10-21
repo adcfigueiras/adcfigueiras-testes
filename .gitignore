@@ -1,0 +1,18 @@
+# Nunca enviar segredos, ficheiros locais ou credenciais para o GitHub Pages.
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.pfx
+*.key
+*.crt
+*.sqlite
+*.db
+*.log
+node_modules/
+dist/
+.cache/
+.DS_Store
+.vscode/
+.idea/
