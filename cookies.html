@@ -6,9 +6,9 @@
 <h2>2. Que armazenamento identificámos nesta aplicação?</h2>
 <div class="table-wrap"><table><thead><tr><th>Tecnologia</th><th>Finalidade observada</th><th>Notas</th></tr></thead><tbody>
 <tr><td>Autenticação Supabase e armazenamento da sessão</td><td>Manter o acesso autenticado, recuperar a sessão e gerir a conta</td><td>Necessário ao serviço de conta solicitado; o cliente utiliza armazenamento persistente</td></tr>
-<tr><td>localStorage</td><td>Preferência de vista, estado da aplicação e backups/estado de sincronização; marcadores de apresentação inicial</td><td>Alguns dados podem ser internos e persistir no dispositivo; é necessária auditoria e minimização dos dados guardados</td></tr>
+<tr><td>localStorage</td><td>Preferências, marcadores de apresentação inicial e cache reduzida de dados desportivos públicos</td><td>A atualização em preparação evita persistir automaticamente pesagens, assiduidade, multas e templates internos; a migração de dados antigos e o comportamento em dispositivos partilhados exigem validação. A sessão Supabase pode continuar armazenada tecnicamente no dispositivo até terminar sessão.</td></tr>
 <tr><td>sessionStorage</td><td>Recordar a página/jogo/jogador em consulta na sessão</td><td>Armazenamento de navegação funcional</td></tr>
-<tr><td>Cache de PWA e service worker</td><td>Instalação, carregamento mais rápido e utilização parcial sem rede</td><td>Pode persistir até ser substituída/limpa; rever a exposição de dados internos em dispositivos partilhados</td></tr>
+<tr><td>Cache de PWA e service worker</td><td>Instalação, carregamento mais rápido e utilização parcial sem rede</td><td>O service worker faz cache de recursos da aplicação; é necessário verificar a limpeza de versões anteriores e a não inclusão de dados internos</td></tr>
 <tr><td>Subscrição de push do navegador</td><td>Receber notificações no dispositivo, apenas quando a pessoa ativa a função e o navegador autoriza</td><td>Gerível na secção Notificações e nas definições do navegador/dispositivo</td></tr>
 </tbody></table></div>
 <h2>3. Cookies e técnicas de análise de utilização</h2>
