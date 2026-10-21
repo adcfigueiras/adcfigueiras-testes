@@ -1625,6 +1625,23 @@ function mergeClubGames(existing=[]){
  existing.forEach(g=>{if(!used.has(g.id)&&!merged.some(x=>x.id===g.id))merged.push(g)});
  return merged;
 }
+// Backups JSON são ficheiros não confiáveis; recusar estruturas excessivas,
+// propriedades especiais e HTML ativo antes de as introduzir na interface.
+function sanitizeImportedSnapshot(value,depth=0){
+ if(depth>32)throw new Error('Estrutura do backup demasiado profunda.');
+ if(typeof value==='string')return value.normalize('NFC').replace(/[<>]/g,'').slice(0,8192);
+ if(Array.isArray(value)){
+  if(value.length>100000)throw new Error('Backup com demasiados registos.');
+  return value.map(v=>sanitizeImportedSnapshot(v,depth+1));
+ }
+ if(value&&typeof value==='object'){
+  const entries=Object.entries(value);
+  if(entries.length>2000)throw new Error('Objeto de backup demasiado grande.');
+  return Object.fromEntries(entries.filter(([k])=>!['__proto__','prototype','constructor'].includes(k)).map(([k,v])=>[k,sanitizeImportedSnapshot(v,depth+1)]));
+ }
+ if(value===null||typeof value==='boolean'||(typeof value==='number'&&Number.isFinite(value)))return value;
+ throw new Error('Valor inválido no backup.');
+}
 function normalizeState(raw){
  const base=defaultState();
  const out={
@@ -2614,7 +2631,7 @@ function openModal(title,subtitle,html,wide=false){$('#modalTitle').textContent=
 function closeModal(){$('#modalBackdrop').classList.add('hidden')}
 
 document.addEventListener('click',e=>{const link=e.target.closest('[data-team-link]');if(link){e.preventDefault();e.stopPropagation();openTeamPage(link.dataset.teamLink)}});
-$('#menuBtn').onclick=()=>$('#sidebar').classList.toggle('open');$('#closeModal').onclick=closeModal;$('#modalBackdrop').onclick=e=>{if(e.target===$('#modalBackdrop'))closeModal()};$('#previewMode').onchange=e=>{if(!backendRoles.includes('admin')||guestMode){mode=guestMode?'public':highestBackendRole(backendRoles);renderChrome();return}mode=e.target.value;localStorage.setItem(MODE_KEY,mode);if(!can(currentView))currentView='dashboard';renderChrome();showView(currentView)};$('#seasonSelect').onchange=async e=>{try{await switchSeason(e.target.value)}catch(err){console.error(err);alert(`Não foi possível abrir a época.\n\n${err?.message||'Erro desconhecido'}`)}};$('#notificationBell').onclick=()=>showView('notifications');$('#importInput').onchange=e=>{const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{try{const data=JSON.parse(r.result);if(!data.schemaVersion)throw new Error('Formato inválido');state=normalizeState(data);saveState('Backup importado.')}catch(err){alert('Não foi possível importar este ficheiro.')}};r.readAsText(file);e.target.value=''};
+$('#menuBtn').onclick=()=>$('#sidebar').classList.toggle('open');$('#closeModal').onclick=closeModal;$('#modalBackdrop').onclick=e=>{if(e.target===$('#modalBackdrop'))closeModal()};$('#previewMode').onchange=e=>{if(!backendRoles.includes('admin')||guestMode){mode=guestMode?'public':highestBackendRole(backendRoles);renderChrome();return}mode=e.target.value;localStorage.setItem(MODE_KEY,mode);if(!can(currentView))currentView='dashboard';renderChrome();showView(currentView)};$('#seasonSelect').onchange=async e=>{try{await switchSeason(e.target.value)}catch(err){console.error(err);alert(`Não foi possível abrir a época.\n\n${err?.message||'Erro desconhecido'}`)}};$('#notificationBell').onclick=()=>showView('notifications');$('#importInput').onchange=e=>{const file=e.target.files[0];if(!file)return;if(file.size>15*1024*1024){alert('O backup é demasiado grande.');e.target.value='';return}const r=new FileReader();r.onload=()=>{try{const data=sanitizeImportedSnapshot(JSON.parse(r.result));if(!data||typeof data!=='object'||!data.schemaVersion)throw new Error('Formato inválido');state=normalizeState(data);saveState('Backup importado.')}catch(err){console.warn('Backup rejeitado:',err?.message||'');alert('Não foi possível importar este ficheiro.')}};r.readAsText(file);e.target.value=''};
 window.addEventListener('online',()=>$('#offlineBanner').classList.add('hidden'));window.addEventListener('offline',()=>$('#offlineBanner').classList.remove('hidden'));if(!navigator.onLine)$('#offlineBanner').classList.remove('hidden');
 if('serviceWorker'in navigator&&location.protocol!=='file:'){
  navigator.serviceWorker.register('./sw.js?v=3.15',{updateViaCache:'none'}).then(async reg=>{
