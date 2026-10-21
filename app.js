@@ -907,7 +907,7 @@ async function publishBackendMatchCallup(g){
  const {data,error}=await supabaseClient.rpc('publish_match_callup',{p_match_id:g.backendId});
  if(error)throw error;
  const result=Array.isArray(data)?data[0]:data;
- if(result?.published)await loadBackendNotifications();
+ if(result?.published)loadBackendNotifications().then(()=>renderChrome()).catch(err=>console.warn('Aviso publicado, mas não foi possível atualizar a caixa de notificações.',err));
  return result||{published:false,recipient_count:0};
 }
 async function saveBackendMatchPlayers(g,{reload=true}={}){
