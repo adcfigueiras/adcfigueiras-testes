@@ -34,13 +34,15 @@ Data da revisão inicial: 21/10/2026. Âmbito: código estático no branch `feat
 - **Notificações de nutrição**: foi identificada a inclusão de pesos no texto completo de algumas notificações; a Edge Function preparada no GitHub substituirá **só no push** o conteúdo por uma mensagem genérica. O corpo individual continuará na caixa privada de notificações do destinatário. **A Edge Function em produção não foi alterada.**
 - **Configuração interna**: template nutricional e preferências de peso passam a ser obtidos através de tabela privada após a sua migração. Não há alteração de produção até testes de autorização e preservação de backups.
 
-### Atualização de pré-produção (21/10/2026)
+### Pré-produção independente — atualização de 21/10/2026
 
-- O ambiente **não foi criado ainda**. Foi identificada a organização Supabase «ADC Figueiras»; aguarda-se confirmação do responsável para escolher essa organização e verificar eventuais custos de um projeto separado.
-- Criados `scripts/build-staging.mjs`, `tests/staging-build.mjs`, `.github/workflows/preproduction-package.yml` e `PREPRODUCAO_INSTRUCOES.md`. A preparação impede que uma distribuição de testes use a URL do Supabase real e separa a cache da PWA.
-- **CI verde:** a execução de GitHub Actions `39620976338` aprovou a sintaxe, os testes estáticos de segurança e a construção isolada de pré-produção. Ainda faltam contas fictícias, teste funcional no navegador e teste real de RLS/migrações.
-- O workflow de pacote de pré-produção **não é um site publicado**: só gera artefactos quando forem configuradas variáveis públicas de um novo projeto de testes.
-- Permanecem quatro migrações SQL para validar num Supabase de testes antes de produção.
+- Criado o projeto **ADC Figueiras - Testes** (`exqqcpxvegqkjwenriik`) na organização Free; custo adicional indicado de 0 $/mês, utilizando a segunda vaga gratuita.
+- Recriada exclusivamente a **estrutura técnica** das 27 tabelas de produção, com 72 políticas RLS, 20 funções e 26 triggers, sem copiar contas, emails, fotografias ou pesagens reais. As quatro migrações pendentes passaram no projeto de testes, que dispõe agora de 29 tabelas.
+- Teste real em transação revertida com identidades fictícias: acesso antes/depois da publicação da convocatória, sócio sem acesso ao plano interno, registo de Termos, destinatários e preferências de notificação, ausência de duplicados e rate limit. Todas as asserções passaram e a transação foi revertida.
+- Populados somente **quatro jogadores fictícios e três jogos inventados**; `tests/sql/staging-demo-data.sql` permite reconstruí-los. Nenhuma conta de login real ou pessoal foi copiada.
+- GitHub Actions: [segurança e migrações aprovadas](https://github.com/adcfigueiras/adcfigueiras.github.io/actions/runs/39626474586) e [pacote de app de testes gerado](https://github.com/adcfigueiras/adcfigueiras.github.io/actions/runs/39626474672). O bundle liga-se apenas ao Supabase de testes, com chave pública e push desativado.
+- **Ainda pendente** um endereço público **separado** para testar o frontend, contas fictícias com login em todas as funções, ensaios Android/iPhone, Edge Functions e validação jurídica das políticas. O ramo `main` e o Supabase de produção continuam sem alterações.
+- Security Advisor em pré-produção: 11 avisos de funções `SECURITY DEFINER` executáveis por autenticados (incluindo duas novas RPCs), a analisar individualmente; não existem indícios de que todas representem vulnerabilidades. Em produção persistem os nove avisos anteriores e o alerta de proteção contra passwords comprometidas desativada.
 
 ## PRIORIDADE 1 — Melhorias técnicas
 
