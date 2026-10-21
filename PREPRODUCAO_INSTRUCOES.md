@@ -3,7 +3,20 @@
 **Estado:** preparação técnica no ramo `feature/public-member-match-center`.  
 **Produção:** https://adcfigueiras.github.io/ — projeto Supabase `kfihltycbnambszmefqa` (**NÃO ALTERAR NA FASE DE TESTES**).
 
-## Teste de migrações PostgreSQL sem segundo projeto Supabase
+## Estado confirmado em 21/10/2026
+
+- **Projeto Supabase separado criado:** [ADC Figueiras - Testes](https://supabase.com/dashboard/project/exqqcpxvegqkjwenriik) (`exqqcpxvegqkjwenriik`, `eu-west-3`), na organização Free; custo adicional apresentado de **0 $/mês**. Ocupa a segunda vaga gratuita enquanto estiver ativo.
+- **Produção intacta:** `kfihltycbnambszmefqa`. Nenhum dado real foi exportado/importado para testes.
+- **Estrutura equivalente criada por introspeção somente do esquema** da produção: 27 tabelas, 72 políticas RLS, 20 funções e 26 triggers; sem dados reais. O SQL estrutural foi aplicado apenas em testes.
+- **Quatro migrações aplicadas no projeto de testes:** plano alimentar, aceitação dos Termos, rate limits e convocatórias públicas. As duas novas tabelas elevam o total a 29.
+- **Testes de autorização executados com identidades fictícias em transação revertida:** publicação da convocatória, preferências de notificação, duplicados, visibilidade de convocados/não convocados, acesso a Termos, nutrição e rate limit. Todos passaram. As identidades artificiais não ficaram na base de dados.
+- **Dados de demonstração permanentes e fictícios:** quatro jogadores, uma época e três jogos. O ficheiro `tests/sql/staging-demo-data.sql` reproduz os dados sem copiar contas ou emails.
+- **Testes automatizados aprovados:** [GitHub Actions de segurança e migrações](https://github.com/adcfigueiras/adcfigueiras.github.io/actions/runs/39626474586).
+- **Pacote de app de pré-produção produzido:** [GitHub Actions — pré-produção](https://github.com/adcfigueiras/adcfigueiras.github.io/actions/runs/39626474672), artefacto `adc-figueiras-preproducao` (expira em 28/10/2026). Esta versão utiliza a URL e a chave **pública** do projeto de testes; nunca uma chave privada ou a base real. O push fica desativado.
+- **Ainda não existe endereço web de pré-visualização**; o artefacto ZIP é um site estático. Falta alojá-lo num endereço de testes distinto da produção, sem alterar o GitHub Pages em `main`.
+- **Ainda pendentes:** contas de teste autenticadas por função, ensaios completos em Android/iPhone, configuração e testes separados das Edge Functions, revisão final das páginas legais, backups reais exportados pelo Admin e verificações finais antes da publicação.
+
+## Testes automáticos complementares em PostgreSQL descartável
 
 A workflow `security-checks.yml` dispõe também de testes em **PostgreSQL 17 descartável** do GitHub Actions, com `tests/sql/fixture.sql` e `tests/sql/assertions.sql`. Os ficheiros usam apenas utilizadores e jogos fictícios. Tentam aplicar as quatro migrações e verificar convocatórias, notificações, Termos, configurações privadas e limites de pedidos.
 
@@ -15,43 +28,11 @@ O ambiente local de trabalho disponível não tem Docker, pelo que o teste Postg
 
 Validar as novas funcionalidades e alterações de segurança num **projeto Supabase separado**, com **contas e dados fictícios**. A app de testes só deve apontar ao projeto de testes, nunca à base de dados real.
 
-### 1. Confirmar organização e custo
+### 1–4. Configuração criada
 
-O único espaço Supabase disponível na ligação atual chama-se **ADC Figueiras**. A criação de um segundo projeto, sugerido com o nome `ADC Figueiras - Testes`, tem de ser confirmada pelo responsável e pelo sistema de custos Supabase; não criar automaticamente sem essa confirmação.
+O projeto já foi criado e as migrações validadas nele. A chave usada no navegador é do tipo `sb_publishable_` e é **pública por definição**. A workflow `preproduction-package.yml` gera um artefacto de pré-produção automaticamente, sem utilizar segredos, e o script `scripts/build-staging.mjs` recusa apontar para a URL de produção.
 
-Usar, se permitido, a mesma região da produção: **eu-west-3**. Não copiar utilizadores, emails pessoais, pesagens ou backups reais para testes.
-
-### 2. Criar projeto Supabase de testes
-
-- Depois de obter autorização de organização/custo, criar projeto `ADC Figueiras - Testes`.
-- Fazer backup/exportação privada do estado da produção **antes** de alterar a aplicação pública.
-- Preparar a estrutura inicial da base de dados por migrações de esquema, **sem dados pessoais de produção**. Um projeto Supabase novo não contém automaticamente as 27 tabelas, políticas e funções do projeto real.
-- Para recuperar a estrutura existente, seguir a documentação `Supabase CLI > supabase db pull` / `supabase db push`, com credenciais num ambiente local seguro. Nunca colocar connection strings de BD nem passwords no GitHub.
-- Inserir dados fictícios: época, equipas, partidas agendadas e concluídas, 3 jogadores falsos, sessões de treino e diferentes funções para utilizadores de teste.
-
-### 3. Aplicar as quatro migrações primeiro em testes
-
-A execução requer revisão das dependências e políticas já existentes:
-- `SUPABASE_MIGRATION_NUTRITION_SETTINGS.sql`
-- `SUPABASE_MIGRATION_TERMS_ACCEPTANCES.sql`
-- `SUPABASE_MIGRATION_CALLUP_PUBLIC.sql`
-- `SUPABASE_MIGRATION_SECURITY_RATE_LIMIT.sql`
-
-As Edge Functions `push-test` e `send-push-queue` também devem ser testadas no projeto novo. O envio push fica **desativado no bundle de testes até existir uma chave VAPID exclusiva do ambiente**.
-
-### 4. Ligar o site de testes ao projeto novo
-
-O script `scripts/build-staging.mjs` exige variáveis da **pré-produção** e recusa a URL do backend real:
-
-```text
-STAGING_SUPABASE_URL=https://<projeto-de-testes>.supabase.co
-STAGING_SUPABASE_PUBLISHABLE_KEY=sb_publishable_<chave-publica-do-projeto-de-testes>
-STAGING_VAPID_PUBLIC_KEY=                 # opcional; vazio => push desativado
-```
-
-Em GitHub, podem ser configuradas como **Actions > Variables** do repositório (são valores públicos; não usar chaves privadas!). A workflow `preproduction-package.yml` gera automaticamente o artefacto **adc-figueiras-preproducao**, retido sete dias. Até à configuração das variáveis, o job é ignorado, por segurança.
-
-O pacote é um site estático, não um servidor. Deve ser colocado num domínio de teste separado antes de testar em dispositivos. **Não publicar o pacote sobre `adcfigueiras.github.io` nem no branch `main`.** O script também separa a chave de armazenamento e a cache da PWA.
+**Não copiar dados reais de atletas, utilizadores ou pesagens para o projeto de testes.** Para repetir o conteúdo de demonstração, usar exclusivamente `tests/sql/staging-demo-data.sql`.
 
 ### 5. Testar
 
