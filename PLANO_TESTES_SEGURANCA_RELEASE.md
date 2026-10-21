@@ -7,14 +7,14 @@
 - [ ] Na aplicação **atualmente publicada**, entrar como Admin e exportar **snapshot de release** e **backup JSON**. Guardar os ficheiros num local privado com acesso restrito (não os colocar no repositório, nem enviar a serviços públicos).
 - [ ] Confirmar que os ficheiros foram descarregados e contêm o histórico esperado (jogos, convocatórias, treinos, pesagens, multas e épocas).
 - [ ] Copiar manualmente o **modelo do plano alimentar** atualmente introduzido nas Definições (se existir), pois a nova versão deixa de o guardar no navegador.
-- [ ] Preparar um projeto Supabase **separado** de teste com dados fictícios e contas de cada categoria, após confirmar organização e eventuais custos. Não usar dados reais de atletas em ambientes de teste sem necessidade e salvaguardas.
+- [x] Criado projeto Supabase isolado **ADC Figueiras - Testes** (`exqqcpxvegqkjwenriik`, plano Free, 0 $/mês). Estrutura sem dados reais replicada, quatro migrações aplicadas e testes de autorização com identidades fictícias concluídos. **Ainda faltam contas de login de teste para cada categoria e testes de ponta a ponta.**
 - [ ] Preparar um site de teste separado para a branch. **O GitHub Pages de produção continua a apontar para `main`**, portanto uma branch do GitHub não é, por si só, uma pré-visualização funcional.
 
 ## 1. Migrações previstas e ordem de validação
 
-**Testes estáticos do GitHub Actions:** a execução de 21/10/2026 passou, incluindo isolamento do pacote de pré-produção (<https://github.com/adcfigueiras/adcfigueiras.github.io/actions/runs/39620976338>). Este sucesso não substitui testes de API/RLS em projeto Supabase de testes.
+**Validação 21/10/2026:** verificações estáticas, PostgreSQL descartável e pacote de pré-produção aprovados no GitHub Actions ([testes](https://github.com/adcfigueiras/adcfigueiras.github.io/actions/runs/39626474586), [pacote](https://github.com/adcfigueiras/adcfigueiras.github.io/actions/runs/39626474672)). Também foram aplicadas e testadas as quatro migrações num segundo projeto Supabase, sem dados reais. **Nenhuma migração foi aplicada à produção.**
 
-As **quatro migrações** estão apenas preparadas no repositório:
+As **quatro migrações** estão preparadas no repositório e já foram aplicadas **exclusivamente no projeto de testes**:
 
 1. `SUPABASE_MIGRATION_NUTRITION_SETTINGS.sql`: criar tabela privada de configurações nutricionais. Testar RLS e atualização por staff/admin; repor o template antigo, se existir.
 2. `SUPABASE_MIGRATION_TERMS_ACCEPTANCES.sql`: registar versão dos Termos e instante do registo. Testar criação de conta, email de confirmação, utilizadores por convite e que o cliente não pode alterar o próprio registo.
