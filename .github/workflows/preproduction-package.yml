@@ -1,0 +1,55 @@
+name: Gerar pacote isolado de pré-produção
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'feature/public-member-match-center'
+    paths:
+      - 'app.js'
+      - 'index.html'
+      - 'styles.css'
+      - 'sw.js'
+      - 'manifest.webmanifest'
+      - 'legal.css'
+      - 'termos.html'
+      - 'privacidade.html'
+      - 'cookies.html'
+      - 'assets/**'
+      - 'data/**'
+      - 'scripts/build-staging.mjs'
+      - '.github/workflows/preproduction-package.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    if: ${{ vars.STAGING_SUPABASE_URL != '' && vars.STAGING_SUPABASE_PUBLISHABLE_KEY != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Compilar site com Supabase APENAS de testes
+        env:
+          STAGING_SUPABASE_URL: ${{ vars.STAGING_SUPABASE_URL }}
+          STAGING_SUPABASE_PUBLISHABLE_KEY: ${{ vars.STAGING_SUPABASE_PUBLISHABLE_KEY }}
+          STAGING_VAPID_PUBLIC_KEY: ${{ vars.STAGING_VAPID_PUBLIC_KEY }}
+        run: node scripts/build-staging.mjs
+      - name: Confirmar ausência de referências à produção
+        run: |
+          if grep -R -l 'kfihltycbnambszmefqa' dist/preprod --include='*.html' --include='*.js'; then
+            echo 'ERRO: ligação ao Supabase real encontrada no pacote de testes.'
+            exit 1
+          fi
+          test -f dist/preprod/index.html
+          test -f dist/preprod/assets/icon-192.png
+      - name: Publicar pacote descarregável por 7 dias
+        uses: actions/upload-artifact@v4
+        with:
+          name: adc-figueiras-preproducao
+          path: dist/preprod/
+          retention-days: 7
+          if-no-files-found: error
