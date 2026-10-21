@@ -1662,13 +1662,20 @@ function sanitizeLegacyBrowserCache(){
 }
 function resetPublicRuntimeState(){
  state=normalizeState(publicCacheSnapshot(state));
+ backendConnected=false;
+ backendSession=null;backendProfile=null;backendRoles=[];backendPlayerAccount=null;
+ backendPrivacyAcknowledgement=null;backendPrivacyLoaded=false;
+ backendReference={settings:null,seasons:[],competitions:[],teams:[],competitionTeams:[]};backendReferenceLoaded=false;
  backendPeople={profiles:[],roles:[],links:[],invitations:[]};backendPeopleLoaded=false;
  backendRoster={seasonId:'',rows:[]};backendRosterLoaded=false;
+ backendMatches={seasonId:'',rows:[]};backendMatchesLoaded=false;
  backendMatchCenter={matchPlayers:[],events:[],weighIns:[]};backendMatchCenterLoaded=false;backendMatchWeightsAvailable=false;
  backendNutritionLoaded=false;
  backendTraining={seasonId:'',trainings:[],attendance:[],weighIns:[]};backendTrainingLoaded=false;
  backendFines={seasonId:'',rules:[],fines:[]};backendFinesLoaded=false;
  backendNotifications={rows:[],recipients:[],preferences:null};backendNotificationsLoaded=false;
+ backendNotificationSchedule={...NOTIFICATION_SCHEDULE_DEFAULTS};backendNotificationScheduleLoaded=false;
+ backendPushDevice={supported:false,permission:'default',subscribed:false,endpoint:'',row:null};
  persistPublicCache();
 }
 function loadState(){
