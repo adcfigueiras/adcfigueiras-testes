@@ -3,6 +3,14 @@
 **Estado:** preparação técnica no ramo `feature/public-member-match-center`.  
 **Produção:** https://adcfigueiras.github.io/ — projeto Supabase `kfihltycbnambszmefqa` (**NÃO ALTERAR NA FASE DE TESTES**).
 
+## Teste de migrações PostgreSQL sem segundo projeto Supabase
+
+A workflow `security-checks.yml` dispõe também de testes em **PostgreSQL 17 descartável** do GitHub Actions, com `tests/sql/fixture.sql` e `tests/sql/assertions.sql`. Os ficheiros usam apenas utilizadores e jogos fictícios. Tentam aplicar as quatro migrações e verificar convocatórias, notificações, Termos, configurações privadas e limites de pedidos.
+
+**Limitação:** o PostgreSQL descartável contém um **esquema mínimo de teste**, não uma cópia exata do Supabase (Auth, API, Edge Functions e todas as políticas reais). Um teste aprovado não substitui ensaios integrados antes do lançamento.
+
+O ambiente local de trabalho disponível não tem Docker, pelo que o teste PostgreSQL utiliza um runner temporário do GitHub Actions. **Não ocupa projetos nem quotas gratuitas do Supabase.**
+
 ## Objetivo
 
 Validar as novas funcionalidades e alterações de segurança num **projeto Supabase separado**, com **contas e dados fictícios**. A app de testes só deve apontar ao projeto de testes, nunca à base de dados real.
