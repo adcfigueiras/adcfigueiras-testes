@@ -1,4 +1,4 @@
-const CACHE='adc-figueiras-testes-v1-4-0';
+const CACHE='adc-figueiras-testes-v1-4-2';
 const OFFLINE_URL='./index.html';
 const ASSETS=[
   './index.html','./styles.css','./app.js','./manifest.webmanifest',
@@ -69,11 +69,13 @@ self.addEventListener('push',event=>{
 
 self.addEventListener('notificationclick',event=>{
  event.notification.close();
- const target=new URL(event.notification.data?.url||'./',self.registration.scope).href;
+ const scope=self.registration.scope;
+ const requested=new URL(event.notification.data?.url||'./',scope).href;
+ const target=requested.startsWith(scope)?requested:scope;
  event.waitUntil((async()=>{
   const windows=await clients.matchAll({type:'window',includeUncontrolled:true});
   for(const client of windows){
-   if('focus'in client){
+   if(client.url.startsWith(scope)&&'focus'in client){
     await client.focus();
     if('navigate'in client)await client.navigate(target);
     return;

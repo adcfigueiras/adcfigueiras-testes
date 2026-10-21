@@ -4,7 +4,7 @@ const V2_KEY='adc-figueiras-testes-v3-cache';
 const V1_KEY='adc-figueiras-testes-v3-legacy-unused';
 const MODE_KEY='adc-figueiras-testes-v3-preview-mode';
 const AUTO_BACKUP_KEY='adc-figueiras-testes-v3-autobackup';
-const APP_VERSION='1.4.0-testes';
+const APP_VERSION='1.4.2-testes';
 const PRIVACY_POLICY_VERSION='2026-10-21-v2';
 const TERMS_VERSION='2026-10-21-v1';
 const $=(s,r=document)=>r.querySelector(s);
@@ -32,7 +32,7 @@ const addDays=(iso,days)=>{const d=new Date(`${iso}T12:00:00`);d.setDate(d.getDa
 const SUPABASE_URL='https://exqqcpxvegqkjwenriik.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_r7awQR_4lQ6xIaFXX1gsng_vZIaQ40e';
 // VAPID public key: safe to expose in the browser. The matching private key lives only in Supabase Edge Function Secrets.
-const VAPID_PUBLIC_KEY='';
+const VAPID_PUBLIC_KEY='BHbSApC1R-8G2uzsMUVBMAc9pWsSpoZE6qJjS9UwbjYW5u2K3PJZ1ZNXkfKprRIYs-AaFy-AR0pH7_gHt3_kkgo';
 let supabaseClient=null;
 let backendSession=null;
 let backendProfile=null;
@@ -2588,7 +2588,7 @@ document.addEventListener('click',e=>{const link=e.target.closest('[data-team-li
 $('#menuBtn').onclick=()=>$('#sidebar').classList.toggle('open');$('#closeModal').onclick=closeModal;$('#modalBackdrop').onclick=e=>{if(e.target===$('#modalBackdrop'))closeModal()};$('#previewMode').onchange=e=>{if(!backendRoles.includes('admin')||guestMode){mode=guestMode?'public':highestBackendRole(backendRoles);renderChrome();return}mode=e.target.value;localStorage.setItem(MODE_KEY,mode);if(!can(currentView))currentView='dashboard';renderChrome();showView(currentView)};$('#seasonSelect').onchange=async e=>{try{await switchSeason(e.target.value)}catch(err){console.error(err);alert(`Não foi possível abrir a época.\n\n${err?.message||'Erro desconhecido'}`)}};$('#notificationBell').onclick=()=>showView('notifications');$('#importInput').onchange=e=>{const file=e.target.files[0];if(!file)return;if(file.size>15*1024*1024){alert('O backup é demasiado grande.');e.target.value='';return}const r=new FileReader();r.onload=()=>{try{const data=sanitizeImportedSnapshot(JSON.parse(r.result));if(!data||typeof data!=='object'||!data.schemaVersion)throw new Error('Formato inválido');state=normalizeState(data);saveState('Backup importado.')}catch(err){console.warn('Backup rejeitado:',err?.message||'');alert('Não foi possível importar este ficheiro.')}};r.readAsText(file);e.target.value=''};
 window.addEventListener('online',()=>$('#offlineBanner').classList.add('hidden'));window.addEventListener('offline',()=>$('#offlineBanner').classList.remove('hidden'));if(!navigator.onLine)$('#offlineBanner').classList.remove('hidden');
 if('serviceWorker'in navigator&&location.protocol!=='file:'){
- navigator.serviceWorker.register('./sw.js?v=1.4-testes',{updateViaCache:'none'}).then(async reg=>{
+ navigator.serviceWorker.register('./sw.js?v=1.4.2-testes',{updateViaCache:'none'}).then(async reg=>{
   try{await reg.update()}catch(e){console.warn('Não foi possível verificar atualização da PWA.',e)}
  }).catch(e=>console.warn('Não foi possível registar o service worker.',e));
 }
