@@ -576,7 +576,7 @@ function applyBackendRosterToState(){
    active:r.active!==false
   };
  });
- try{localStorage.setItem(V2_KEY,JSON.stringify(state))}catch{}
+ try{persistPublicCache()}catch{}
 }
 async function loadBackendRosterData(){
  const season=backendActiveSeason();
@@ -774,7 +774,7 @@ function applyBackendMatchesToState(){
   return g;
  });
  state.games=[...oldOther,...mapped];
- try{localStorage.setItem(V2_KEY,JSON.stringify(state))}catch{}
+ try{persistPublicCache()}catch{}
 }
 async function loadBackendMatchesData(){
  const season=backendActiveSeason();if(!season){backendMatches={seasonId:'',rows:[]};backendMatchesLoaded=true;return}
@@ -881,7 +881,7 @@ function applyBackendMatchCenterToState(){
    g.weighIns=weights;
   }
  }
- try{localStorage.setItem(V2_KEY,JSON.stringify(state))}catch{}
+ try{persistPublicCache()}catch{}
 }
 async function loadBackendMatchCenterData(){
  if(!backendMatchesLoaded){backendMatchCenter={matchPlayers:[],events:[],weighIns:[]};backendMatchCenterLoaded=true;backendMatchWeightsAvailable=false;return}
@@ -1017,7 +1017,7 @@ function applyBackendTrainingToState(){
   return {...old,id:old.id||`dbtraining_${r.id}`,backendId:r.id,seasonId:localSeasonId,date:dt.date,time:dt.time,location:r.venue||'',notes:r.notes||'',title:r.title||'Treino',status:r.status||'scheduled',entries};
  });
  state.trainings=[...other,...mapped];
- try{localStorage.setItem(V2_KEY,JSON.stringify(state))}catch{}
+ try{persistPublicCache()}catch{}
 }
 async function loadBackendTrainingData(){
  const season=backendActiveSeason();
@@ -1102,7 +1102,7 @@ function applyBackendFinesToState(){
  // O resultado já vem filtrado pelo RLS: jogador recebe apenas as próprias multas;
  // capitão/equipa técnica/admin recebem os registos permitidos. Não misturar multas locais antigas.
  state.fines=[...remoteFines];
- try{localStorage.setItem(V2_KEY,JSON.stringify(state))}catch{}
+ try{persistPublicCache()}catch{}
 }
 async function loadBackendFinesData(){
  const season=backendActiveSeason();
@@ -1378,7 +1378,7 @@ async function signUpV3(name,email,memberNumber,password,password2){
    return;
   }
   localStorage.setItem(PENDING_CONFIRM_EMAIL_KEY,email);
-  if(data.session){localStorage.removeItem(PENDING_CONFIRM_EMAIL_KEY);await loadIdentityWithOneRetry(data.session);showAuthenticatedApp();renderChrome();showView('dashboard');queuePostLoginOnboarding();return}
+  if(data.session){localStorage.removeItem(PENDING_CONFIRM_EMAIL_KEY);resetPublicRuntimeState();await loadIdentityWithOneRetry(data.session);showAuthenticatedApp();renderChrome();showView('dashboard');queuePostLoginOnboarding();return}
   showSignupMode(false);const em=$('#loginEmail');if(em)em.value=email;
   setAuthMessage(cleanMember?'Conta criada. Confirma o email que recebeste. O teu número de sócio ficará pendente de validação pelo clube.':'Conta criada. Confirma o email que recebeste e depois inicia sessão.','ok');
  }catch(err){
@@ -1410,6 +1410,7 @@ async function continueAsPublic(){
   // Garante que o primeiro pedido público usa a chave anónima e não um JWT antigo
   // que possa ter ficado guardado no browser de uma sessão anterior.
   await clearLocalSupabaseSession();
+  resetPublicRuntimeState();
   await loadPublicBackend();
   showAuthenticatedApp();renderChrome();showView('dashboard');
  }catch(err){
@@ -1417,6 +1418,7 @@ async function continueAsPublic(){
   if(isJwtSessionError(err)){
    try{
     await clearLocalSupabaseSession();
+    resetPublicRuntimeState();
     await loadPublicBackend();
     showAuthenticatedApp();renderChrome();showView('dashboard');
     return;
@@ -1427,6 +1429,7 @@ async function continueAsPublic(){
 }
 function leavePublicMode(){
  guestMode=false;backendSession=null;backendProfile=null;backendRoles=[];backendPlayerAccount=null;backendPrivacyAcknowledgement=null;backendPrivacyLoaded=false;backendNotifications={rows:[],recipients:[],preferences:null};backendNotificationsLoaded=false;backendNotificationSchedule={...NOTIFICATION_SCHEDULE_DEFAULTS};backendNotificationScheduleLoaded=false;backendPushDevice={supported:false,permission:'default',subscribed:false,endpoint:'',row:null};state.notifications=[];backendConnected=false;mode='public';
+ resetPublicRuntimeState();
  showAuthGate();showSignupMode(false);setAuthMessage('');
 }
 async function signInV3(email,password){
@@ -1435,7 +1438,7 @@ async function signInV3(email,password){
   const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
   if(error)throw error;
   localStorage.removeItem(PENDING_CONFIRM_EMAIL_KEY);
-  await loadIdentityWithOneRetry(data.session);
+  resetPublicRuntimeState();await loadIdentityWithOneRetry(data.session);
   showAuthenticatedApp();
   renderChrome();showView('dashboard');queuePostLoginOnboarding();
  }catch(err){
@@ -1446,6 +1449,7 @@ async function signInV3(email,password){
 async function signOutV3(){
  try{await supabaseClient?.auth.signOut()}catch(e){console.warn(e)}
  guestMode=false;backendSession=null;backendProfile=null;backendRoles=[];backendPlayerAccount=null;backendPeople={profiles:[],roles:[],links:[],invitations:[]};backendPeopleLoaded=false;backendPrivacyAcknowledgement=null;backendPrivacyLoaded=false;backendNotifications={rows:[],recipients:[],preferences:null};backendNotificationsLoaded=false;backendNotificationSchedule={...NOTIFICATION_SCHEDULE_DEFAULTS};backendNotificationScheduleLoaded=false;backendPushDevice={supported:false,permission:'default',subscribed:false,endpoint:'',row:null};state.notifications=[];backendConnected=false;mode='public';
+ resetPublicRuntimeState();
  showAuthGate();setAuthMessage('Sessão terminada.','ok');
  const pw=$('#loginPassword');if(pw)pw.value='';
 }
@@ -1479,7 +1483,7 @@ async function bootV3(){
    cleanAuthUrl();return;
   }
   if((passwordRecoveryMode||initialRecoveryHint)&&data.session){passwordRecoveryMode=true;backendSession=data.session;showAuthGate();showAuthMode('recovery',false);setAuthMessage('Link de recuperação validado. Define uma nova palavra-passe.','ok');return}
-  if(data.session){localStorage.removeItem(PENDING_CONFIRM_EMAIL_KEY);await loadIdentityWithOneRetry(data.session);showAuthenticatedApp();renderChrome();showView('dashboard');queuePostLoginOnboarding()}
+  if(data.session){localStorage.removeItem(PENDING_CONFIRM_EMAIL_KEY);resetPublicRuntimeState();await loadIdentityWithOneRetry(data.session);showAuthenticatedApp();renderChrome();showView('dashboard');queuePostLoginOnboarding()}
   else {showAuthGate();showAuthMode('login',false);if(initialAuthError){setAuthMessage(`Não foi possível validar o link: ${initialAuthError}.`,'error');cleanAuthUrl()}}
  }catch(err){console.error(err);setAuthMessage(`Ligação ao backend falhou: ${friendlyAuthError(err)}`,'error');showAuthGate()}
 }
@@ -1583,14 +1587,57 @@ function normalizeState(raw){
  syncClubGamesToFixtures(out);
  return out;
 }
+// Apenas informação pública pode persistir no dispositivo.
+function publicCacheSnapshot(source){
+ const pick=(o,keys)=>Object.fromEntries(keys.filter(k=>o&&o[k]!==undefined).map(k=>[k,o[k]]));
+ const games=(source?.games||[]).map(g=>{
+  const published=g.status==='final'||g.status==='completed';
+  const item=pick(g,['id','backendId','seasonId','fixtureId','competitionId','competitionSlug','competitionType','officialFixture','fixture','source','date','time','round','opponent','homeAway','competition','countsForStandings','venue','status','homeScore','awayScore','halfTimeHomeScore','halfTimeAwayScore','administrativeDecision','homePenalties','awayPenalties']);
+  item.roster=published?Object.fromEntries(Object.entries(g.roster||{}).filter(([,r])=>r?.status==='Convocado').map(([id,r])=>[id,{status:'Convocado',starter:r.starter===true,used:r.used===true,stats:pick(r.stats||{},['goals','assists','yellow','secondYellow','red'])}])):{};
+  item.timeline=published?(g.timeline||[]).map(ev=>pick(ev,['id','backendId','type','minute','playerId','assistId','ownGoal'])):[];
+  item.captainId=published?g.captainId||'':'';
+  return item;
+ });
+ return {
+  schemaVersion:10,
+  settings:pick(source?.settings,['club','activeSeasonId','weightReference','nutritionTemplate','nutritionEnabled','lastBackupAt']),
+  seasons:(source?.seasons||[]).map(s=>pick(s,['id','backendId','label','active','archived','competitionName','backendStartDate','backendEndDate'])),
+  teams:(source?.teams||[]).map(t=>pick(t,['id','name','short','logo','homeVenue','aliases','backendId'])),
+  players:(source?.players||[]).map(p=>pick(p,['id','backendId','name','position','number','active','photo_url'])),
+  games,
+  competitionResults:(source?.competitionResults||[]).map(r=>pick(r,['id','backendId','seasonId','competitionId','competitionSlug','competitionType','competition','round','date','time','home','away','homeScore','awayScore','venue','fixture','officialFixture','source','clubGameId','fromClubGame','administrativeDecision'])),
+  standings:(source?.standings||[]).map(r=>pick(r,['id','seasonId','competitionId','team','j','v','e','d','gf','ga','pts'])),
+  users:[],trainings:[],fines:[],fineRules:[],notifications:[],joinRequests:[],news:[]
+ };
+}
+function persistPublicCache(){try{localStorage.setItem(V2_KEY,JSON.stringify(publicCacheSnapshot(state)))}catch(e){console.warn('Cache pública não guardada',e)}}
+function sanitizeLegacyBrowserCache(){
+ try{
+  const old=localStorage.getItem(AUTO_BACKUP_KEY);
+  if(old){const v=JSON.parse(old);localStorage.setItem(AUTO_BACKUP_KEY,JSON.stringify({savedAt:v?.savedAt||'',data:publicCacheSnapshot(v?.data||{})}))}
+  persistPublicCache();
+  localStorage.removeItem(V1_KEY);
+ }catch(e){console.warn('Cache legada não migrada',e)}
+}
+function resetPublicRuntimeState(){
+ state=normalizeState(publicCacheSnapshot(state));
+ backendPeople={profiles:[],roles:[],links:[],invitations:[]};backendPeopleLoaded=false;
+ backendRoster={seasonId:'',rows:[]};backendRosterLoaded=false;
+ backendMatchCenter={matchPlayers:[],events:[],weighIns:[]};backendMatchCenterLoaded=false;backendMatchWeightsAvailable=false;
+ backendTraining={seasonId:'',trainings:[],attendance:[],weighIns:[]};backendTrainingLoaded=false;
+ backendFines={seasonId:'',rules:[],fines:[]};backendFinesLoaded=false;
+ backendNotifications={rows:[],recipients:[],preferences:null};backendNotificationsLoaded=false;
+ persistPublicCache();
+}
 function loadState(){
  try{
-  const v2=localStorage.getItem(V2_KEY); if(v2) return normalizeState(JSON.parse(v2));
-  const v1=localStorage.getItem(V1_KEY); if(v1){const m=normalizeState(migrateV1(JSON.parse(v1)));localStorage.setItem(V2_KEY,JSON.stringify(m));return m;}
+  const v2=localStorage.getItem(V2_KEY); if(v2) return normalizeState(publicCacheSnapshot(JSON.parse(v2)));
+  const v1=localStorage.getItem(V1_KEY); if(v1)return normalizeState(publicCacheSnapshot(migrateV1(JSON.parse(v1))));
  }catch(e){console.warn(e)}
  return defaultState();
 }
 let state=loadState();
+sanitizeLegacyBrowserCache();
 let currentView='dashboard';
 let mode='public';
 let calendarCursor=new Date();calendarCursor.setDate(1);
@@ -1678,7 +1725,7 @@ const canManageFines=()=>isHistoricalSeason()?(backendRoles.includes('admin')&&h
 const canManageFineRules=()=>isHistoricalSeason()?(backendRoles.includes('admin')&&historicalEditMode):(mode==='staff'||mode==='admin');
 const isAdmin=()=>mode==='admin';
 
-function saveState(msg){syncClubGamesToFixtures();try{const previous=localStorage.getItem(V2_KEY);if(previous)localStorage.setItem(AUTO_BACKUP_KEY,JSON.stringify({savedAt:new Date().toISOString(),data:JSON.parse(previous)}))}catch(e){console.warn('Auto-backup falhou',e)}localStorage.setItem(V2_KEY,JSON.stringify(state));renderChrome();renderView(currentView);if(msg)toast(msg)}
+function saveState(msg){syncClubGamesToFixtures();try{const previous=localStorage.getItem(V2_KEY);if(previous)localStorage.setItem(AUTO_BACKUP_KEY,JSON.stringify({savedAt:new Date().toISOString(),data:publicCacheSnapshot(JSON.parse(previous))}))}catch(e){console.warn('Auto-backup falhou',e)}persistPublicCache();renderChrome();renderView(currentView);if(msg)toast(msg)}
 function toast(msg){const e=$('#toast');e.textContent=msg;e.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>e.classList.remove('show'),2200)}
 function activeSeason(){return state.seasons.find(s=>s.id===state.settings.activeSeasonId)||state.seasons[0]}
 async function switchSeason(seasonId){
@@ -1692,7 +1739,7 @@ async function switchSeason(seasonId){
   if(internal&&(!isHistoricalSeason()||backendRoles.includes('admin'))){await loadBackendTrainingData();await loadBackendFinesData()}
   else{backendTraining={seasonId:'',trainings:[],attendance:[],weighIns:[]};backendTrainingLoaded=false;backendFines={seasonId:'',rules:[],fines:[]};backendFinesLoaded=false}
  }
- try{localStorage.setItem(V2_KEY,JSON.stringify(state))}catch{}
+ try{persistPublicCache()}catch{}
  renderChrome();showView('dashboard');
 }
 function seasonGames(){return state.games.filter(g=>(g.seasonId||state.settings.activeSeasonId)===state.settings.activeSeasonId)}
@@ -2444,7 +2491,7 @@ async function exportReleaseSnapshot(){
  try{
   const {data,error}=await supabaseClient.rpc('admin_release_snapshot');if(error)throw error;
   const payload={product:'ADC Figueiras',app_version:APP_VERSION,exported_at:new Date().toISOString(),backend:data,local_state:state};
-  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`adc-figueiras-release-snapshot-${nowKey()}.json`;a.click();URL.revokeObjectURL(a.href);state.settings.lastBackupAt=new Date().toISOString();localStorage.setItem(V2_KEY,JSON.stringify(state));renderView(currentView);toast('Snapshot de release exportado.');
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`adc-figueiras-release-snapshot-${nowKey()}.json`;a.click();URL.revokeObjectURL(a.href);state.settings.lastBackupAt=new Date().toISOString();persistPublicCache();renderView(currentView);toast('Snapshot de release exportado.');
  }catch(err){console.error(err);alert(`Não foi possível exportar o snapshot de release.
 
 ${err?.message||'Erro desconhecido'}`)}finally{if(btn){btn.disabled=false;btn.textContent='Exportar snapshot de release'}}
@@ -2457,7 +2504,7 @@ async function cleanupKnownTestNotifications(){
 ${err?.message||'Erro desconhecido'}`)}finally{if(btn){btn.disabled=false;btn.textContent='Limpar notificações de teste'}}
 }
 
-function exportData(){state.settings.lastBackupAt=new Date().toISOString();localStorage.setItem(V2_KEY,JSON.stringify(state));const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`adc-figueiras-backup-${nowKey()}.json`;a.click();URL.revokeObjectURL(a.href);renderView(currentView);toast('Backup exportado.')}
+function exportData(){state.settings.lastBackupAt=new Date().toISOString();persistPublicCache();const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`adc-figueiras-backup-${nowKey()}.json`;a.click();URL.revokeObjectURL(a.href);renderView(currentView);toast('Backup exportado.')}
 function exportAutoBackup(){const snap=autoBackupSnapshot();if(!snap?.data){toast('Ainda não existe snapshot automático.');return}const blob=new Blob([JSON.stringify(snap.data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`adc-figueiras-snapshot-${nowKey()}.json`;a.click();URL.revokeObjectURL(a.href);toast('Snapshot automático exportado.')}
 
 function openModal(title,subtitle,html,wide=false){$('#modalTitle').textContent=title;$('#modalSubtitle').textContent=subtitle||'';$('#modalBody').innerHTML=html;$('#modal').classList.toggle('wide',!!wide);$('#modalBackdrop').classList.remove('hidden')}
